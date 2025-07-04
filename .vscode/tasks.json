@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build VTM Unity Project",
+			"type": "shell",
+			"command": "Unity.exe",
+			"args": [
+				"-projectPath",
+				".",
+				"-buildTarget",
+				"StandaloneWindows64",
+				"-quit",
+				"-batchmode"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
