@@ -9,7 +9,7 @@ This Unity project allows Game Masters and players to visualize and manage vampi
 ## Features
 
 ### ✅ **Core VTM Systems**
-- **7 Canonical Clans**: Ventrue, Toreador, Brujah, Malkavian, Nosferatu, Gangrel, Tremere
+- **5 Sects**: Camarilla, Anarch Free States, Hecata, Sabbat, Independents
 - **Territory Types**: Feeding Grounds, Havens, Influence areas, Elysium, Contested zones
 - **Authentic Clan Colors**: Each clan has lore-appropriate visual styling
 - **Territory Management**: Claim, release, and contest territories
