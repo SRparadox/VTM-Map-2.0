@@ -31,15 +31,27 @@
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon hospital">🏥</span>
-                    <span>Hospitals</span>
+                    <span>Hospitals & Clinics</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-icon bar">🍷</span>
-                    <span>Bars & Clubs</span>
+                    <span class="legend-icon government">�️</span>
+                    <span>Government</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-icon landmark">🏛️</span>
-                    <span>Landmarks</span>
+                    <span class="legend-icon university">🎓</span>
+                    <span>Universities</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon transport">🚌</span>
+                    <span>Transport</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon entertainment">�</span>
+                    <span>Entertainment</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon shopping">🛍️</span>
+                    <span>Shopping</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon blood">🩸</span>
@@ -57,6 +69,27 @@
         </div>
         
         <div id="map"></div>
+    </div>
+    
+    <!-- Telegram-style popup window -->
+    <div id="telegramPopup" class="telegram-popup hidden">
+        <div class="telegram-window">
+            <div class="telegram-header">
+                <div class="telegram-title">
+                    <span class="telegram-icon">📧</span>
+                    <span id="telegramSender">Unknown Contact</span>
+                </div>
+                <button class="telegram-close" onclick="closeTelegram()">×</button>
+            </div>
+            <div class="telegram-content">
+                <div class="telegram-message">
+                    <p id="telegramText">Message content will appear here...</p>
+                </div>
+                <div class="telegram-actions" id="telegramActions">
+                    <!-- Action buttons will be dynamically added here -->
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
