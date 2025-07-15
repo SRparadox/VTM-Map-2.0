@@ -383,7 +383,7 @@ body {
     z-index: 1;
 }
 
-.moon {
+#moonIcon {
     position: absolute;
     width: 60px;
     height: 60px;
@@ -392,6 +392,10 @@ body {
     transform: translateX(-50%);
     transition: all 2s ease-in-out;
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+    font-size: 40px;
+    color: #f5f5dc;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    z-index: 2;
 }
 
 .moon-face {
@@ -425,41 +429,212 @@ body {
 }
 
 /* Moon positions for different phases */
-.moon-container.dusk .moon {
+.moon-container.dusk #moonIcon {
     left: 20%;
     top: 25px;
+    transition: all 1s ease-in-out;
 }
 
-.moon-container.evening .moon {
+.moon-container.night #moonIcon {
     left: 40%;
     top: 15px;
+    transition: all 1s ease-in-out;
 }
 
-.moon-container.midnight .moon {
+.moon-container.midnight #moonIcon {
     left: 60%;
     top: 10px;
+    transition: all 1s ease-in-out;
 }
 
-.moon-container.dawn .moon {
+.moon-container.dawn #moonIcon {
     left: 80%;
     top: 25px;
+    transition: all 1s ease-in-out;
 }
 
 /* Header background changes for different phases - more natural lighting */
 .game-header.dusk {
     background: linear-gradient(90deg, #2c1810 0%, #3d2817 100%);
+    border-bottom: 2px solid #8b4513;
 }
 
-.game-header.evening {
+.game-header.night {
     background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+    border-bottom: 2px solid #4169e1;
 }
 
 .game-header.midnight {
     background: linear-gradient(90deg, #0f0f23 0%, #1a1a3a 100%);
+    border-bottom: 2px solid #191970;
 }
 
 .game-header.dawn {
-    background: linear-gradient(90deg, #2d1b2d 0%, #3d2a3d 100%);
+    background: linear-gradient(90deg, #3d2a3d 0%, #4a3349 100%);
+    border-bottom: 2px solid #8b008b;
+}
+
+/* Player Stats and Resources Styling */
+.player-stats, .player-resources {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(20, 0, 0, 0.9);
+    border-radius: 8px;
+    border: 1px solid #8B0000;
+}
+
+.player-stats h3, .player-resources h3 {
+    color: #CD5C5C;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid #8B0000;
+    padding-bottom: 8px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.stat-label {
+    min-width: 80px;
+    font-size: 0.9em;
+    color: #D3D3D3;
+}
+
+.stat-bar {
+    flex: 1;
+    height: 20px;
+    background-color: #2C2C2C;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+
+.stat-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.blood-fill {
+    background: linear-gradient(90deg, #8B0000, #DC143C);
+    width: 100%;
+}
+
+.humanity-fill {
+    background: linear-gradient(90deg, #4169E1, #87CEEB);
+    width: 70%;
+}
+
+.influence-fill {
+    background: linear-gradient(90deg, #DAA520, #FFD700);
+    width: 30%;
+}
+
+.stat-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.stat-number {
+    font-weight: bold;
+    color: #FFD700;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.resource-icon {
+    font-size: 1.2em;
+    width: 25px;
+    text-align: center;
+}
+
+.resource-label {
+    flex: 1;
+    font-size: 0.9em;
+    color: #D3D3D3;
+}
+
+.resource-value {
+    font-weight: bold;
+    color: #FFD700;
+    min-width: 40px;
+    text-align: right;
+}
+
+.save-load-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(20, 0, 0, 0.9);
+    border-radius: 8px;
+    border: 1px solid #8B0000;
+}
+
+.save-load-section h3 {
+    color: #CD5C5C;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid #8B0000;
+    padding-bottom: 8px;
+}
+
+.save-btn, .load-btn, .reset-btn {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.save-btn {
+    background-color: #006400;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #228B22;
+    transform: translateY(-2px);
+}
+
+.load-btn {
+    background-color: #4169E1;
+    color: white;
+}
+
+.load-btn:hover {
+    background-color: #6495ED;
+    transform: translateY(-2px);
+}
+
+.reset-btn {
+    background-color: #8B0000;
+    color: white;
+}
+
+.reset-btn:hover {
+    background-color: #DC143C;
+    transform: translateY(-2px);
 }
 
 /* Responsive design */

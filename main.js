@@ -1,77 +1,444 @@
 // Game State Management
 class GameState {
     constructor() {
+        console.log('=== GAME STATE INITIALIZATION ===');
         this.currentNight = 1;
         this.currentPhase = 'Dusk';
-        this.phases = ['Dusk', 'Evening', 'Midnight', 'Dawn'];
-        this.currentPhaseIndex = 0;
+        this.phases = ['Dusk', 'Night', 'Midnight', 'Dawn'];
+        this.phaseIndex = 0;
         this.playerActions = 3; // Actions per turn
-        this.locations = [];
+        
+        console.log('Initial phase:', this.currentPhase);
+        console.log('Initial phase index:', this.phaseIndex);
+        console.log('All phases:', this.phases);
+        
+        // Player stats
+        this.playerStats = {
+            bloodPool: { current: 10, max: 10 },
+            humanity: { current: 7, max: 10 },
+            influence: { current: 3, max: 10 },
+            contacts: 5,
+            resources: 25000
+        };
+        
+        // Domain control percentages
+        this.domainControl = {
+            banking: 15,
+            medical: 8,
+            government: 12,
+            academic: 20,
+            entertainment: 10
+        };
+        
+        this.updateUI();
+        this.setupEventListeners();
+        
+        // Start a periodic debug check
+        setInterval(() => {
+            console.log('=== PERIODIC DEBUG CHECK ===');
+            console.log('Current phase:', this.currentPhase);
+            console.log('Current phase index:', this.phaseIndex);
+            console.log('Expected phase:', this.phases[this.phaseIndex]);
+            
+            const moonContainer = document.querySelector('.moon-container');
+            const header = document.querySelector('.game-header');
+            if (moonContainer && header) {
+                console.log('Moon container classes:', Array.from(moonContainer.classList));
+                console.log('Header classes:', Array.from(header.classList));
+            }
+            console.log('=== END PERIODIC DEBUG ===');
+        }, 5000); // Check every 5 seconds
+        
+        console.log('=== END INITIALIZATION ===');
+    }
+    
+    setupEventListeners() {
+        document.getElementById('nextTurnBtn').addEventListener('click', () => this.nextTurn());
+        document.getElementById('saveGameBtn').addEventListener('click', () => this.saveGame());
+        document.getElementById('loadGameBtn').addEventListener('click', () => this.loadGame());
+        document.getElementById('resetGameBtn').addEventListener('click', () => this.resetGame());
+        
+        // Debug button for testing phase cycling
+        document.getElementById('debugPhaseBtn').addEventListener('click', () => {
+            console.log('=== DEBUG PHASE CYCLE ===');
+            this.nextTurn();
+            console.log('After nextTurn - Phase:', this.currentPhase, 'Index:', this.phaseIndex);
+        });
+        
+        // Action buttons
+        document.getElementById('influenceBtn').addEventListener('click', () => this.useInfluence());
+        document.getElementById('feedBtn').addEventListener('click', () => this.feed());
+        document.getElementById('gatherBtn').addEventListener('click', () => this.gatherIntel());
+        document.getElementById('meetBtn').addEventListener('click', () => this.meetContact());
     }
     
     nextTurn() {
-        this.currentPhaseIndex = (this.currentPhaseIndex + 1) % this.phases.length;
-        this.currentPhase = this.phases[this.currentPhaseIndex];
+        console.log('=== NEXT TURN DEBUG ===');
+        console.log('Current phase index:', this.phaseIndex);
+        console.log('Current phase:', this.currentPhase);
+        console.log('All phases:', this.phases);
         
-        if (this.currentPhase === 'Dusk') {
+        this.phaseIndex = (this.phaseIndex + 1) % this.phases.length;
+        this.currentPhase = this.phases[this.phaseIndex];
+        
+        console.log('NEW phase index:', this.phaseIndex);
+        console.log('NEW phase:', this.currentPhase);
+        
+        // Reset player actions each turn
+        this.playerActions = 3;
+        
+        if (this.phaseIndex === 0) {
             this.currentNight++;
-            this.playerActions = 3; // Reset actions for new night
+            console.log('New night started:', this.currentNight);
+            this.processNightlyEvents();
         }
         
         this.updateUI();
+        this.updateMoonAnimation();
+        console.log('=== END TURN DEBUG ===');
+    }
+    
+    processNightlyEvents() {
+        // Reduce blood pool each night
+        this.playerStats.bloodPool.current = Math.max(0, this.playerStats.bloodPool.current - 1);
+        
+        // Random events that might affect stats
+        if (Math.random() < 0.3) {
+            this.generateRandomEvent();
+        }
+    }
+    
+    generateRandomEvent() {
+        const events = [
+            { type: 'influence', change: 1, message: 'Your network grows stronger' },
+            { type: 'resources', change: 5000, message: 'Business ventures prove profitable' },
+            { type: 'contacts', change: 1, message: 'New ally joins your circle' },
+            { type: 'humanity', change: -1, message: 'The Beast stirs within' }
+        ];
+        
+        const event = events[Math.floor(Math.random() * events.length)];
+        this.applyStatChange(event.type, event.change);
+        
+        showTelegram('Night Events', event.message, [
+            { text: 'Acknowledge', action: 'close' }
+        ]);
+    }
+    
+    applyStatChange(stat, change) {
+        switch(stat) {
+            case 'influence':
+                this.playerStats.influence.current = Math.min(this.playerStats.influence.max, 
+                    Math.max(0, this.playerStats.influence.current + change));
+                break;
+            case 'resources':
+                this.playerStats.resources = Math.max(0, this.playerStats.resources + change);
+                break;
+            case 'contacts':
+                this.playerStats.contacts = Math.max(0, this.playerStats.contacts + change);
+                break;
+            case 'humanity':
+                this.playerStats.humanity.current = Math.min(this.playerStats.humanity.max, 
+                    Math.max(0, this.playerStats.humanity.current + change));
+                break;
+            case 'bloodPool':
+                this.playerStats.bloodPool.current = Math.min(this.playerStats.bloodPool.max, 
+                    Math.max(0, this.playerStats.bloodPool.current + change));
+                break;
+        }
+        this.updatePlayerStats();
+    }
+    
+    useInfluence() {
+        if (this.playerActions <= 0) {
+            showTelegram('No Actions', 'You have no actions remaining this turn.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+            return;
+        }
+        
+        if (this.playerStats.influence.current >= 1) {
+            this.playerActions--;
+            this.applyStatChange('influence', -1);
+            // Increase domain control in a random area
+            const domains = Object.keys(this.domainControl);
+            const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+            this.domainControl[randomDomain] = Math.min(100, this.domainControl[randomDomain] + 5);
+            this.updateDomainControl();
+            
+            showTelegram('Influence Used', `You've expanded your control over ${randomDomain} operations.`, [
+                { text: 'Excellent', action: 'close' }
+            ]);
+        } else {
+            showTelegram('Insufficient Influence', 'You need more influence to take this action.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+        }
+    }
+    
+    feed() {
+        if (this.playerActions <= 0) {
+            showTelegram('No Actions', 'You have no actions remaining this turn.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+            return;
+        }
+        
+        if (this.playerStats.bloodPool.current < this.playerStats.bloodPool.max) {
+            this.playerActions--;
+            this.applyStatChange('bloodPool', 3);
+            if (Math.random() < 0.2) {
+                this.applyStatChange('humanity', -1);
+            }
+            
+            showTelegram('Feeding', 'You have fed, restoring your vitae. The Beast is sated... for now.', [
+                { text: 'Continue', action: 'close' }
+            ]);
+        } else {
+            showTelegram('Already Fed', 'Your blood pool is full. You have no need to feed right now.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+        }
+    }
+    
+    gatherIntel() {
+        if (this.playerActions <= 0) {
+            showTelegram('No Actions', 'You have no actions remaining this turn.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+            return;
+        }
+        
+        if (this.playerStats.resources >= 1000) {
+            this.playerActions--;
+            this.applyStatChange('resources', -1000);
+            this.applyStatChange('contacts', 1);
+            
+            showTelegram('Intelligence Gathered', 'Your informants have provided valuable information. New contact acquired.', [
+                { text: 'Excellent', action: 'close' }
+            ]);
+        } else {
+            showTelegram('Insufficient Resources', 'You need at least $1,000 to gather intelligence.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+        }
+    }
+    
+    meetContact() {
+        if (this.playerActions <= 0) {
+            showTelegram('No Actions', 'You have no actions remaining this turn.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+            return;
+        }
+        
+        if (this.playerStats.contacts >= 1) {
+            this.playerActions--;
+            const outcomes = [
+                { influence: 1, message: 'Your contact provides valuable assistance.' },
+                { resources: 2000, message: 'Your contact offers a lucrative opportunity.' },
+                { humanity: 1, message: 'Your contact reminds you of your mortal past.' }
+            ];
+            
+            const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+            const stat = Object.keys(outcome)[0];
+            this.applyStatChange(stat, outcome[stat]);
+            
+            showTelegram('Contact Meeting', outcome.message, [
+                { text: 'Thank you', action: 'close' }
+            ]);
+        } else {
+            showTelegram('No Contacts', 'You have no contacts available to meet with.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+        }
+    }
+    
+    saveGame() {
+        const gameData = {
+            currentNight: this.currentNight,
+            currentPhase: this.currentPhase,
+            phaseIndex: this.phaseIndex,
+            playerActions: this.playerActions,
+            playerStats: this.playerStats,
+            domainControl: this.domainControl,
+            saveDate: new Date().toISOString()
+        };
+        
+        localStorage.setItem('vtm-sf-save', JSON.stringify(gameData));
+        
+        showTelegram('Game Saved', 'Your progress has been saved to local storage.', [
+            { text: 'Continue', action: 'close' }
+        ]);
+    }
+    
+    loadGame() {
+        const savedData = localStorage.getItem('vtm-sf-save');
+        if (savedData) {
+            const gameData = JSON.parse(savedData);
+            
+            this.currentNight = gameData.currentNight;
+            this.currentPhase = gameData.currentPhase;
+            this.phaseIndex = gameData.phaseIndex;
+            this.playerActions = gameData.playerActions || 3;
+            this.playerStats = gameData.playerStats;
+            this.domainControl = gameData.domainControl;
+            
+            this.updateUI();
+            this.updateMoonAnimation();
+            
+            const saveDate = new Date(gameData.saveDate).toLocaleDateString();
+            showTelegram('Game Loaded', `Progress restored from save dated ${saveDate}.`, [
+                { text: 'Continue', action: 'close' }
+            ]);
+        } else {
+            showTelegram('No Save Found', 'No saved game found in local storage.', [
+                { text: 'Understood', action: 'close' }
+            ]);
+        }
+    }
+    
+    resetGame() {
+        if (confirm('Are you sure you want to start a new game? This will erase your current progress.')) {
+            localStorage.removeItem('vtm-sf-save');
+            location.reload();
+        }
     }
     
     updateUI() {
         document.getElementById('currentNight').textContent = this.currentNight;
         document.getElementById('currentPhase').textContent = this.currentPhase;
+        document.getElementById('phaseDebug').textContent = this.phaseIndex;
         
-        // Update moon animation and header lighting
-        this.updateMoonAnimation();
+        // Update actions display in the next turn button
+        const nextTurnBtn = document.getElementById('nextTurnBtn');
+        nextTurnBtn.textContent = `Next Turn (${this.playerActions} actions left)`;
         
-        // Update action buttons based on remaining actions
-        const actionButtons = document.querySelectorAll('.action-btn');
-        actionButtons.forEach(btn => {
-            btn.disabled = this.playerActions <= 0;
-        });
+        this.updatePlayerStats();
+        this.updateDomainControl();
+        this.updateHeaderBackground();
+    }
+    
+    updatePlayerStats() {
+        // Update blood pool
+        const bloodPercentage = (this.playerStats.bloodPool.current / this.playerStats.bloodPool.max) * 100;
+        document.getElementById('bloodFill').style.width = bloodPercentage + '%';
+        document.getElementById('bloodValue').textContent = 
+            `${this.playerStats.bloodPool.current}/${this.playerStats.bloodPool.max}`;
+        
+        // Update humanity
+        const humanityPercentage = (this.playerStats.humanity.current / this.playerStats.humanity.max) * 100;
+        document.getElementById('humanityFill').style.width = humanityPercentage + '%';
+        document.getElementById('humanityValue').textContent = 
+            `${this.playerStats.humanity.current}/${this.playerStats.humanity.max}`;
+        
+        // Update influence
+        const influencePercentage = (this.playerStats.influence.current / this.playerStats.influence.max) * 100;
+        document.getElementById('influenceFill').style.width = influencePercentage + '%';
+        document.getElementById('influenceValue').textContent = 
+            `${this.playerStats.influence.current}/${this.playerStats.influence.max}`;
+        
+        // Update contacts and resources
+        document.getElementById('contactsValue').textContent = this.playerStats.contacts;
+        document.getElementById('resourcesValue').textContent = 
+            `$${this.playerStats.resources.toLocaleString()}`;
+    }
+    
+    updateDomainControl() {
+        document.getElementById('bankingControl').textContent = this.domainControl.banking + '%';
+        document.getElementById('medicalControl').textContent = this.domainControl.medical + '%';
+        document.getElementById('governmentControl').textContent = this.domainControl.government + '%';
+        document.getElementById('academicControl').textContent = this.domainControl.academic + '%';
+        document.getElementById('entertainmentControl').textContent = this.domainControl.entertainment + '%';
+    }
+    
+    updateHeaderBackground() {
+        console.log('=== HEADER BACKGROUND DEBUG ===');
+        const header = document.querySelector('.game-header');
+        const phaseClass = this.currentPhase.toLowerCase();
+        
+        if (!header) {
+            console.error('Header element not found');
+            return;
+        }
+        
+        // Remove existing phase classes
+        header.classList.remove('dusk', 'night', 'midnight', 'dawn', 'evening');
+        
+        // Add current phase class
+        header.classList.add(phaseClass);
+        
+        console.log('Header phase class:', phaseClass);
+        console.log('Header classes after update:', Array.from(header.classList));
+        
+        // Check computed background
+        const computedStyle = window.getComputedStyle(header);
+        console.log('Header computed background:', computedStyle.background);
+        console.log('=== END HEADER BACKGROUND DEBUG ===');
     }
     
     updateMoonAnimation() {
+        console.log('=== MOON ANIMATION DEBUG ===');
         const moonContainer = document.querySelector('.moon-container');
-        const gameHeader = document.querySelector('.game-header');
-        const moon = document.getElementById('moon');
-        const moonGlow = document.querySelector('.moon-glow');
+        const moonIcon = document.getElementById('moonIcon');
+        const moonGlow = document.getElementById('moonGlow');
+        
+        if (!moonContainer || !moonIcon || !moonGlow) {
+            console.error('Moon elements not found:', {
+                moonContainer: !!moonContainer,
+                moonIcon: !!moonIcon,
+                moonGlow: !!moonGlow
+            });
+            return;
+        }
         
         // Remove all existing phase classes
-        moonContainer.classList.remove('dusk', 'evening', 'midnight', 'dawn');
-        gameHeader.classList.remove('dusk', 'evening', 'midnight', 'dawn');
+        moonContainer.classList.remove('dusk', 'night', 'midnight', 'dawn', 'evening');
         
         // Add current phase class
         const phaseClass = this.currentPhase.toLowerCase();
         moonContainer.classList.add(phaseClass);
-        gameHeader.classList.add(phaseClass);
         
         // Keep moon as full moon but change glow intensity and color based on phase
-        const moonFace = moon.querySelector('.moon-face');
-        moonFace.textContent = '🌕'; // Always full moon
+        moonIcon.textContent = '🌕'; // Always full moon
+        
+        // Log for debugging
+        console.log('Current phase:', this.currentPhase);
+        console.log('Phase class added:', phaseClass);
+        console.log('Moon container classes after update:', Array.from(moonContainer.classList));
+        
+        // Verify computed styles
+        const computedStyle = window.getComputedStyle(moonIcon);
+        console.log('Moon icon computed position:', {
+            left: computedStyle.left,
+            top: computedStyle.top,
+            position: computedStyle.position
+        });
         
         switch(this.currentPhase) {
             case 'Dusk':
                 moonGlow.style.background = 'radial-gradient(circle, rgba(255, 220, 180, 0.15) 0%, transparent 70%)';
                 moonGlow.style.opacity = '0.4';
+                console.log('Applied Dusk styling');
                 break;
-            case 'Evening':
+            case 'Night':
                 moonGlow.style.background = 'radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%)';
                 moonGlow.style.opacity = '0.7';
+                console.log('Applied Night styling');
                 break;
             case 'Midnight':
                 moonGlow.style.background = 'radial-gradient(circle, rgba(240, 248, 255, 0.35) 0%, transparent 70%)';
                 moonGlow.style.opacity = '0.9';
+                console.log('Applied Midnight styling');
                 break;
             case 'Dawn':
                 moonGlow.style.background = 'radial-gradient(circle, rgba(255, 240, 245, 0.15) 0%, transparent 70%)';
                 moonGlow.style.opacity = '0.3';
+                console.log('Applied Dawn styling');
                 break;
+            default:
+                console.warn('Unknown phase:', this.currentPhase);
         }
+        console.log('=== END MOON ANIMATION DEBUG ===');
     }
 }
 
@@ -328,12 +695,12 @@ function handleLocationAction(type, locationName) {
 function showTelegram(sender, message, buttons) {
     const popup = document.getElementById('telegramPopup');
     const senderElement = document.getElementById('telegramSender');
-    const textElement = document.getElementById('telegramText');
+    const messageElement = document.getElementById('telegramMessage');
     const actionsElement = document.getElementById('telegramActions');
     
     // Set content
     senderElement.textContent = sender;
-    textElement.textContent = message;
+    messageElement.textContent = message;
     
     // Clear previous buttons
     actionsElement.innerHTML = '';
@@ -341,7 +708,7 @@ function showTelegram(sender, message, buttons) {
     // Add new buttons
     buttons.forEach(button => {
         const btn = document.createElement('button');
-        btn.className = `telegram-btn ${button.class || ''}`;
+        btn.className = `telegram-action-btn ${button.class || ''}`;
         btn.textContent = button.text;
         btn.onclick = () => handleTelegramAction(button.action, button.data);
         actionsElement.appendChild(btn);
@@ -359,6 +726,7 @@ function closeTelegram() {
 function handleTelegramAction(action, data) {
     if (action === 'close') {
         closeTelegram();
+        gameState.updateUI();
         return;
     }
     
@@ -366,6 +734,9 @@ function handleTelegramAction(action, data) {
     switch(action) {
         // Bank actions
         case 'deeperBank':
+            gameState.applyStatChange('influence', 1);
+            gameState.domainControl.banking = Math.min(100, gameState.domainControl.banking + 10);
+            gameState.updateDomainControl();
             showTelegram("Financial Contact", "You establish deeper connections within the banking system. Your financial influence grows significantly, but you've also attracted attention from other vampires who covet such power.", [
                 { text: "Prepare for challenges", action: "close", class: "primary" }
             ]);
@@ -373,12 +744,19 @@ function handleTelegramAction(action, data) {
             
         // Hospital actions
         case 'recruitNurse':
+            gameState.applyStatChange('contacts', 1);
+            gameState.domainControl.medical = Math.min(100, gameState.domainControl.medical + 5);
+            gameState.updateDomainControl();
             showTelegram("Medical Informant", "The night shift nurse is now under your influence. She will provide you with inside information about patient schedules and blood storage. A valuable asset indeed.", [
                 { text: "Excellent", action: "close", class: "success" }
             ]);
             break;
             
         case 'secureBlood':
+            gameState.applyStatChange('bloodPool', 5);
+            if (Math.random() < 0.3) {
+                gameState.applyStatChange('humanity', -1);
+            }
             showTelegram("Medical Informant", "You've secured several blood bags without detection. Your hunger is completely satisfied, and you have reserves for future emergencies. The risk was worth the reward.", [
                 { text: "Store safely", action: "close", class: "success" }
             ]);
@@ -386,12 +764,16 @@ function handleTelegramAction(action, data) {
             
         // Government actions
         case 'expandNetwork':
+            gameState.applyStatChange('influence', 2);
+            gameState.domainControl.government = Math.min(100, gameState.domainControl.government + 10);
+            gameState.updateDomainControl();
             showTelegram("Political Insider", "Your political network expands significantly. You now have contacts in multiple government departments, giving you unprecedented access to city planning and policy decisions.", [
                 { text: "Use this power wisely", action: "close", class: "primary" }
             ]);
             break;
             
         case 'accessFiles':
+            gameState.applyStatChange('contacts', 2);
             showTelegram("Political Insider", "You've gained access to classified files revealing the locations of other vampire activities in the city. This information could be valuable... or dangerous.", [
                 { text: "Study the intelligence", action: "close", class: "danger" }
             ]);
@@ -399,6 +781,9 @@ function handleTelegramAction(action, data) {
             
         // University actions
         case 'recruitStudents':
+            gameState.applyStatChange('contacts', 2);
+            gameState.domainControl.academic = Math.min(100, gameState.domainControl.academic + 8);
+            gameState.updateDomainControl();
             showTelegram("Academic Contact", "Several promising students now serve your interests. They will act as your eyes and ears on campus, reporting on faculty activities and potential threats.", [
                 { text: "Build student network", action: "close", class: "primary" }
             ]);
@@ -406,6 +791,8 @@ function handleTelegramAction(action, data) {
             
         // Transport actions
         case 'establishSurveillance':
+            gameState.applyStatChange('influence', 1);
+            gameState.applyStatChange('contacts', 1);
             showTelegram("Transit Authority", "Your surveillance network is now active across the city's transport system. You can track the movements of rivals and allies alike through security cameras and schedule monitoring.", [
                 { text: "Monitor the city", action: "close", class: "primary" }
             ]);
@@ -414,11 +801,13 @@ function handleTelegramAction(action, data) {
         // Entertainment actions
         case 'feedAgain':
             if (Math.random() > 0.7) {
+                gameState.applyStatChange('humanity', -2);
                 showTelegram("Masquerade Breach", "Your second feeding attempt was too bold! A patron noticed your supernatural nature. You must act quickly to contain this breach of the Masquerade.", [
                     { text: "Use dominate", action: "close", class: "danger" },
                     { text: "Eliminate witness", action: "close", class: "danger" }
                 ]);
             } else {
+                gameState.applyStatChange('bloodPool', 3);
                 showTelegram("Night Life Contact", "Your second feeding was successful, but risky. You're completely satiated now, but some patrons seem disturbed by the evening's events.", [
                     { text: "Leave immediately", action: "close", class: "success" }
                 ]);
@@ -427,6 +816,9 @@ function handleTelegramAction(action, data) {
             
         // Shopping actions
         case 'establishBusiness':
+            gameState.applyStatChange('resources', 10000);
+            gameState.domainControl.entertainment = Math.min(100, gameState.domainControl.entertainment + 5);
+            gameState.updateDomainControl();
             showTelegram("Commercial Contact", "You've established a legitimate business front in the shopping district. This will provide both income and cover for your vampiric activities.", [
                 { text: "Manage the business", action: "close", class: "success" }
             ]);
@@ -434,6 +826,10 @@ function handleTelegramAction(action, data) {
             
         // Blood bank actions
         case 'secureMore':
+            gameState.applyStatChange('bloodPool', 7);
+            if (Math.random() < 0.4) {
+                gameState.applyStatChange('humanity', -1);
+            }
             showTelegram("Blood Bank Contact", "You've secured additional blood supplies, but the quantity you've taken may be noticed. Your reserves are substantial, but scrutiny may follow.", [
                 { text: "Lay low for now", action: "close", class: "danger" }
             ]);
@@ -441,37 +837,30 @@ function handleTelegramAction(action, data) {
             
         // General action buttons
         case 'gatherIntel':
+            gameState.applyStatChange('contacts', 1);
             showTelegram("Information Network", "Your intelligence gathering reveals rival vampire movements in the financial district. This information could be valuable for future operations.", [
                 { text: "File intelligence", action: "close", class: "success" }
             ]);
-            gameState.playerActions--;
-            gameState.updateUI();
             break;
             
         case 'learnRivals':
+            gameState.applyStatChange('contacts', 1);
             showTelegram("Information Broker", "Your informants reveal that the Tremere clan has been expanding their influence in the university district, while the Ventrue control most of the financial sector. The Brujah are restless in the entertainment areas.", [
                 { text: "Adjust strategy", action: "close", class: "primary" }
             ]);
-            gameState.playerActions--;
-            gameState.updateUI();
             break;
             
         case 'studyPower':
+            gameState.applyStatChange('influence', 1);
             showTelegram("Information Broker", "The city's power structure is more complex than it appears. The mayor has vampire advisors, the police chief is under supernatural influence, and several corporate boards have undead members.", [
                 { text: "Plan accordingly", action: "close", class: "success" }
             ]);
-            gameState.playerActions--;
-            gameState.updateUI();
             break;
             
         default:
             showTelegram("Unknown Contact", "The shadows whisper of events yet to unfold. Your actions have consequences that will reveal themselves in time.", [
                 { text: "Continue", action: "close" }
             ]);
-            if (gameState.playerActions > 0) {
-                gameState.playerActions--;
-                gameState.updateUI();
-            }
             break;
     }
 }
