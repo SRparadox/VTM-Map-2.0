@@ -24,3 +24,18 @@ Including core game features.
 
 Including Saving and Loading Game state.
 Player stats and resources displayed instead of important locations on the left side bar
+
+
+# not yet implemented
+Main Menu
+Player Creation
+Coterie Creation
+Random Character Generator
+Haven Creation and modification
+Sects and Influences
+Domain Borders
+Conflicts
+Stats affecting actions such as feedings
+Hunters
+Expansion (and retribution from other domains)
+Conflict and Resolution
