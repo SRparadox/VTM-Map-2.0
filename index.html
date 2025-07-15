@@ -3,13 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTM Board Game - San Francisco Map</title>
+    <title>Vampire: The Masquerade - San Francisco Political Board</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>San Francisco Board Map</h1>
-    <div id="map"></div>
+    <header class="game-header">
+        <h1>Vampire: The Masquerade</h1>
+        <h2>San Francisco by Night</h2>
+        <div class="game-status">
+            <div class="night-counter">Night: <span id="currentNight">1</span></div>
+            <div class="time-phase">Phase: <span id="currentPhase">Dusk</span></div>
+            <button id="nextTurnBtn" class="turn-button">Next Turn</button>
+        </div>
+    </header>
+    
+    <div class="game-container">
+        <div class="sidebar">
+            <div class="location-legend">
+                <h3>Important Locations</h3>
+                <div class="legend-item">
+                    <span class="legend-icon bank">🏦</span>
+                    <span>Banks</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon hospital">🏥</span>
+                    <span>Hospitals</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon bar">🍷</span>
+                    <span>Bars & Clubs</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon landmark">🏛️</span>
+                    <span>Landmarks</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon blood">🩸</span>
+                    <span>Blood Drives</span>
+                </div>
+            </div>
+            
+            <div class="game-actions">
+                <h3>Actions</h3>
+                <button class="action-btn" id="influenceBtn">Influence</button>
+                <button class="action-btn" id="feedBtn">Feed</button>
+                <button class="action-btn" id="gatherBtn">Gather Intel</button>
+                <button class="action-btn" id="meetBtn">Meet Contact</button>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+    
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="main.js"></script>
 </body>
