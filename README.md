@@ -14,3 +14,13 @@ Download the data of San Fransisco utilizing OpenStreetApi. This will set up the
 Game Mechanics to be implemented. Create a turn manager (turn manager will move forward the time aka move to the next nights) and keep track of the progression of time. It is inside of these turns that the player will be able to move and interact.
 
 Icons (Pins) will display important locations. Such as Banks, Blood Drives, Hospitals, Bars, Important landmarks, (list to be determined).
+
+
+# Stage 2.5
+Include options and menus for interactions for each key location
+
+# Stage 3
+Including core game features.
+
+Including Saving and Loading Game state.
+Player stats and resources displayed instead of important locations on the left side bar

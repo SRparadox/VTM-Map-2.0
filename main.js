@@ -25,11 +25,53 @@ class GameState {
         document.getElementById('currentNight').textContent = this.currentNight;
         document.getElementById('currentPhase').textContent = this.currentPhase;
         
+        // Update moon animation and header lighting
+        this.updateMoonAnimation();
+        
         // Update action buttons based on remaining actions
         const actionButtons = document.querySelectorAll('.action-btn');
         actionButtons.forEach(btn => {
             btn.disabled = this.playerActions <= 0;
         });
+    }
+    
+    updateMoonAnimation() {
+        const moonContainer = document.querySelector('.moon-container');
+        const gameHeader = document.querySelector('.game-header');
+        const moon = document.getElementById('moon');
+        const moonGlow = document.querySelector('.moon-glow');
+        
+        // Remove all existing phase classes
+        moonContainer.classList.remove('dusk', 'evening', 'midnight', 'dawn');
+        gameHeader.classList.remove('dusk', 'evening', 'midnight', 'dawn');
+        
+        // Add current phase class
+        const phaseClass = this.currentPhase.toLowerCase();
+        moonContainer.classList.add(phaseClass);
+        gameHeader.classList.add(phaseClass);
+        
+        // Keep moon as full moon but change glow intensity and color based on phase
+        const moonFace = moon.querySelector('.moon-face');
+        moonFace.textContent = '🌕'; // Always full moon
+        
+        switch(this.currentPhase) {
+            case 'Dusk':
+                moonGlow.style.background = 'radial-gradient(circle, rgba(255, 220, 180, 0.15) 0%, transparent 70%)';
+                moonGlow.style.opacity = '0.4';
+                break;
+            case 'Evening':
+                moonGlow.style.background = 'radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%)';
+                moonGlow.style.opacity = '0.7';
+                break;
+            case 'Midnight':
+                moonGlow.style.background = 'radial-gradient(circle, rgba(240, 248, 255, 0.35) 0%, transparent 70%)';
+                moonGlow.style.opacity = '0.9';
+                break;
+            case 'Dawn':
+                moonGlow.style.background = 'radial-gradient(circle, rgba(255, 240, 245, 0.15) 0%, transparent 70%)';
+                moonGlow.style.opacity = '0.3';
+                break;
+        }
     }
 }
 
@@ -560,4 +602,5 @@ gameState.updateUI();
 console.log("Vampire: The Masquerade - San Francisco by Night initialized");
 console.log("Stage 1: Map with location markers - Complete");
 console.log("Stage 2: Basic turn management - Complete");
+console.log("Stage 3: Moon arc animation with lighting - Complete");
 console.log("Ready for political intrigue...");

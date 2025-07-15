@@ -13,6 +13,15 @@ body {
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     border-bottom: 2px solid #666;
+    position: relative;
+    overflow: hidden;
+    transition: background 2s ease-in-out;
+}
+
+/* Ensure header content stays above moon */
+.game-header h1, .game-header h2, .game-status {
+    position: relative;
+    z-index: 10;
 }
 
 .game-header h1 {
@@ -361,6 +370,96 @@ body {
 
 .telegram-btn.success:hover {
     background: linear-gradient(45deg, #32cd32, #90ee90);
+}
+
+/* Moon animation container */
+.moon-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.moon {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: 20px;
+    left: 10%;
+    transform: translateX(-50%);
+    transition: all 2s ease-in-out;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+.moon-face {
+    font-size: 40px;
+    color: #f5f5dc;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+.moon-glow {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    top: -10px;
+    left: -10px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: moonGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes moonGlow {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+}
+
+/* Moon positions for different phases */
+.moon-container.dusk .moon {
+    left: 20%;
+    top: 25px;
+}
+
+.moon-container.evening .moon {
+    left: 40%;
+    top: 15px;
+}
+
+.moon-container.midnight .moon {
+    left: 60%;
+    top: 10px;
+}
+
+.moon-container.dawn .moon {
+    left: 80%;
+    top: 25px;
+}
+
+/* Header background changes for different phases - more natural lighting */
+.game-header.dusk {
+    background: linear-gradient(90deg, #2c1810 0%, #3d2817 100%);
+}
+
+.game-header.evening {
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.game-header.midnight {
+    background: linear-gradient(90deg, #0f0f23 0%, #1a1a3a 100%);
+}
+
+.game-header.dawn {
+    background: linear-gradient(90deg, #2d1b2d 0%, #3d2a3d 100%);
 }
 
 /* Responsive design */
