@@ -1,3 +1,157 @@
+// Character Class - Stage 4.5
+class Character {
+    constructor(name = "", clan = "", imageSrc = "") {
+        this.name = name;
+        this.clan = clan;
+        this.imageSrc = imageSrc;
+        
+        // Attributes (1-5 dots each)
+        this.attributes = {
+            physical: 1,
+            social: 1,
+            mental: 1
+        };
+        
+        // Base stats
+        this.stats = {
+            bloodPool: { current: 5, max: 10 },
+            humanity: { current: 7, max: 10 },
+            resources: this.getStartingResources(clan),
+            contacts: this.getStartingContacts(clan)
+        };
+        
+        // Clan-specific traits
+        this.traits = this.getClanTraits(clan);
+        
+        // Coterie (empty at creation)
+        this.coterie = [];
+        
+        // Character flags and history
+        this.flags = {
+            hasBlueBlood: clan === 'Ventrue',
+            generation: 13, // Neonate
+            embrace: new Date().getFullYear(),
+            experience: 0
+        };
+    }
+    
+    getStartingResources(clan) {
+        switch(clan) {
+            case 'Ventrue': return 35000; // +10k for blue bloods
+            case 'Toreador': return 28000; // +3k for connections
+            case 'Tremere': return 20000; // Austere
+            case 'Brujah': return 22000; // Street smart
+            case 'Gangrel': return 18000; // Nomadic
+            default: return 25000;
+        }
+    }
+    
+    getStartingContacts(clan) {
+        switch(clan) {
+            case 'Ventrue': return 6; // +1 contact
+            case 'Toreador': return 7; // +2 contacts
+            case 'Tremere': return 4; // Secretive
+            case 'Brujah': return 5; // Standard
+            case 'Gangrel': return 3; // Loners
+            default: return 5;
+        }
+    }
+    
+    getClanTraits(clan) {
+        const traits = {
+            'Ventrue': {
+                bane: 'Blue Blood - Can only feed from mortals of good breeding or above',
+                discipline1: 'Dominate',
+                discipline2: 'Fortitude',
+                discipline3: 'Presence',
+                weakness: 'Selective feeding',
+                strength: 'Natural leadership and wealth'
+            },
+            'Toreador': {
+                bane: 'Artistic obsession - May become entranced by beauty',
+                discipline1: 'Auspex',
+                discipline2: 'Celerity',
+                discipline3: 'Presence',
+                weakness: 'Distracted by art and beauty',
+                strength: 'Social connections and artistic insight'
+            },
+            'Tremere': {
+                bane: 'Blood bond to clan hierarchy',
+                discipline1: 'Auspex',
+                discipline2: 'Dominate',
+                discipline3: 'Thaumaturgy',
+                weakness: 'Clan loyalty required',
+                strength: 'Blood sorcery and knowledge'
+            },
+            'Brujah': {
+                bane: 'Difficulty controlling frenzy when angered',
+                discipline1: 'Celerity',
+                discipline2: 'Potence',
+                discipline3: 'Presence',
+                weakness: 'Quick to anger',
+                strength: 'Physical prowess and passion'
+            },
+            'Gangrel': {
+                bane: 'Gains animal features when frenzying',
+                discipline1: 'Animalism',
+                discipline2: 'Fortitude',
+                discipline3: 'Protean',
+                weakness: 'Bestial features',
+                strength: 'Survival instincts and shapeshifting'
+            }
+        };
+        
+        return traits[clan] || {
+            bane: 'Unknown',
+            discipline1: 'None',
+            discipline2: 'None',
+            discipline3: 'None',
+            weakness: 'Unknown',
+            strength: 'Unknown'
+        };
+    }
+    
+    // Calculate total attribute points (for validation)
+    getTotalAttributePoints() {
+        return this.attributes.physical + this.attributes.social + this.attributes.mental;
+    }
+    
+    // Validate character is properly built
+    isValid() {
+        const hasName = this.name.trim().length > 0;
+        const hasClan = this.clan !== "";
+        const validAttributes = this.getTotalAttributePoints() >= 3 && 
+                               Object.values(this.attributes).every(val => val >= 1 && val <= 5);
+        
+        return hasName && hasClan && validAttributes;
+    }
+    
+    // Convert to save data
+    toSaveData() {
+        return {
+            name: this.name,
+            clan: this.clan,
+            imageSrc: this.imageSrc,
+            attributes: this.attributes,
+            stats: this.stats,
+            traits: this.traits,
+            coterie: this.coterie,
+            flags: this.flags
+        };
+    }
+    
+    // Load from save data
+    static fromSaveData(data) {
+        const character = new Character(data.name, data.clan, data.imageSrc);
+        character.attributes = data.attributes || character.attributes;
+        character.stats = data.stats || character.stats;
+        character.traits = data.traits || character.traits;
+        character.coterie = data.coterie || character.coterie;
+        character.flags = data.flags || character.flags;
+        return character;
+    }
+}
+
 // Game State Management
 class GameState {
     constructor() {
@@ -7,6 +161,9 @@ class GameState {
         this.phases = ['Dusk', 'Night', 'Midnight', 'Dawn'];
         this.phaseIndex = 0;
         this.playerActions = 3; // Actions per turn
+        
+        // Character reference (will be set when character is created)
+        this.character = null;
         
         console.log('Initial phase:', this.currentPhase);
         console.log('Initial phase index:', this.phaseIndex);
@@ -183,6 +340,18 @@ class GameState {
             return;
         }
         
+        // Check for Ventrue blue blood restriction
+        if (this.character && this.character.flags.hasBlueBlood) {
+            const feedingOptions = [
+                { text: 'Feed from elite social clubs', action: 'feedElite', class: 'primary' },
+                { text: 'Visit upscale establishments', action: 'feedUpscale', class: 'success' },
+                { text: 'Cancel feeding', action: 'close' }
+            ];
+            
+            showTelegram('Blue Blood Restriction', 'As a Ventrue, you can only feed from mortals of good breeding. Choose your hunting grounds carefully.', feedingOptions);
+            return;
+        }
+        
         if (this.playerStats.bloodPool.current < this.playerStats.bloodPool.max) {
             this.playerActions--;
             this.applyStatChange('bloodPool', 3);
@@ -261,6 +430,7 @@ class GameState {
             playerActions: this.playerActions,
             playerStats: this.playerStats,
             domainControl: this.domainControl,
+            character: this.character ? this.character.toSaveData() : null,
             saveDate: new Date().toISOString()
         };
         
@@ -283,11 +453,17 @@ class GameState {
             this.playerStats = gameData.playerStats;
             this.domainControl = gameData.domainControl;
             
+            // Load character if available
+            if (gameData.character) {
+                this.character = Character.fromSaveData(gameData.character);
+            }
+            
             this.updateUI();
             this.updateMoonAnimation();
             
             const saveDate = new Date(gameData.saveDate).toLocaleDateString();
-            showTelegram('Game Loaded', `Progress restored from save dated ${saveDate}.`, [
+            const characterName = this.character ? this.character.name : 'Unknown';
+            showTelegram('Game Loaded', `Welcome back, ${characterName}. Progress restored from save dated ${saveDate}.`, [
                 { text: 'Continue', action: 'close' }
             ]);
         } else {
@@ -835,6 +1011,29 @@ function handleTelegramAction(action, data) {
             ]);
             break;
             
+        // Ventrue feeding actions
+        case 'feedElite':
+            gameState.playerActions--;
+            gameState.applyStatChange('bloodPool', 4); // Better feeding for Ventrue
+            if (Math.random() < 0.1) { // Lower humanity loss risk
+                gameState.applyStatChange('humanity', -1);
+            }
+            showTelegram("Elite Feeding", "You feed from the social elite at an exclusive club. The quality blood satisfies your refined palate completely, though the risk of exposure was significant.", [
+                { text: "Excellent vintage", action: "close", class: "primary" }
+            ]);
+            break;
+            
+        case 'feedUpscale':
+            gameState.playerActions--;
+            gameState.applyStatChange('bloodPool', 3);
+            if (Math.random() < 0.15) {
+                gameState.applyStatChange('humanity', -1);
+            }
+            showTelegram("Upscale Feeding", "You feed from well-bred mortals at an upscale establishment. While not perfect, their blood meets your standards as a Ventrue.", [
+                { text: "Adequate sustenance", action: "close", class: "success" }
+            ]);
+            break;
+            
         // General action buttons
         case 'gatherIntel':
             gameState.applyStatChange('contacts', 1);
@@ -919,6 +1118,13 @@ document.head.appendChild(style);
 // Set minimum zoom to prevent zooming out too far
 map.setMinZoom(11);
 
+// Handle window resize events to keep map properly sized
+window.addEventListener('resize', () => {
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+});
+
 // Event listeners
 document.getElementById('nextTurnBtn').addEventListener('click', () => {
     gameState.nextTurn();
@@ -994,9 +1200,9 @@ class IntroScreen {
     }
     
     setupEventListeners() {
-        // Start Game button
+        // Start Game button - now leads to character creation
         document.getElementById('startBtn').addEventListener('click', () => {
-            this.startNewGame();
+            this.showCharacterCreation();
         });
         
         // Load Game button
@@ -1016,17 +1222,34 @@ class IntroScreen {
         });
     }
     
-    startNewGame() {
-        // Hide intro screen with fade effect
+    showCharacterCreation() {
         const introScreen = document.getElementById('introScreen');
-        const gameScreen = document.getElementById('gameScreen');
+        const characterCreationScreen = document.getElementById('characterCreationScreen');
         
         introScreen.classList.add('hidden');
         
-        // Wait for fade out, then show game screen
+        setTimeout(() => {
+            characterCreationScreen.classList.remove('hidden');
+        }, 1000);
+    }
+    
+    startGameWithCharacter(character) {
+        const characterCreationScreen = document.getElementById('characterCreationScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        
+        characterCreationScreen.classList.add('hidden');
+        
         setTimeout(() => {
             gameScreen.classList.remove('hidden');
-            this.initializeGame();
+            this.initializeGameWithCharacter(character);
+            
+            // Fix map rendering after screen transition
+            setTimeout(() => {
+                if (typeof map !== 'undefined') {
+                    map.invalidateSize();
+                    console.log('Map size invalidated after character creation');
+                }
+            }, 100);
         }, 1000);
     }
     
@@ -1034,11 +1257,9 @@ class IntroScreen {
         const savedData = localStorage.getItem('vtm-sf-save');
         
         if (savedData) {
-            // Show confirmation dialog
             const confirmLoad = confirm('Load existing save game? This will start from your last saved progress.');
             
             if (confirmLoad) {
-                // Hide intro screen
                 const introScreen = document.getElementById('introScreen');
                 const gameScreen = document.getElementById('gameScreen');
                 
@@ -1046,56 +1267,53 @@ class IntroScreen {
                 
                 setTimeout(() => {
                     gameScreen.classList.remove('hidden');
-                    // Initialize game state if not already done
                     if (!gameState) {
                         gameState = new GameState();
                     }
-                    // Load the game data
                     gameState.loadGame();
+                    
+                    // Fix map rendering after screen transition
+                    setTimeout(() => {
+                        if (typeof map !== 'undefined') {
+                            map.invalidateSize();
+                            console.log('Map size invalidated after loading game');
+                        }
+                    }, 100);
                 }, 1000);
             }
         } else {
-            // No save found - show message
-            alert('No saved game found. Starting a new game instead.');
-            this.startNewGame();
+            alert('No saved game found. Starting character creation instead.');
+            this.showCharacterCreation();
         }
     }
     
-    initializeGame() {
-        // Initialize game state
+    initializeGameWithCharacter(character) {
+        // Initialize game state with character
         gameState = new GameState();
+        gameState.character = character;
         
-        // Reset game state to beginning
+        // Apply character's starting stats to game state
+        gameState.playerStats = {
+            bloodPool: character.stats.bloodPool,
+            humanity: character.stats.humanity,
+            influence: { current: 3, max: 10 }, // Standard starting influence
+            contacts: character.stats.contacts,
+            resources: character.stats.resources
+        };
+        
+        // Reset game progression
         gameState.currentNight = 1;
         gameState.currentPhase = 'Dusk';
         gameState.phaseIndex = 0;
         gameState.playerActions = 3;
         
-        // Reset player stats to starting values
-        gameState.playerStats = {
-            bloodPool: { current: 10, max: 10 },
-            humanity: { current: 7, max: 10 },
-            influence: { current: 3, max: 10 },
-            contacts: 5,
-            resources: 25000
-        };
-        
-        // Reset domain control
-        gameState.domainControl = {
-            banking: 15,
-            medical: 8,
-            government: 12,
-            academic: 20,
-            entertainment: 10
-        };
-        
         // Update all UI elements
         gameState.updateUI();
         gameState.updateMoonAnimation();
         
-        // Show welcome message
+        // Show welcome message with character name
         setTimeout(() => {
-            showTelegram('Welcome', 'Welcome to San Francisco by Night, young Kindred. The Prince has granted you a small territory to prove your worth. Build your influence, expand your domain, and survive the political machinations of the Camarilla. Remember: the First Tradition above all - Maintain the Masquerade.', [
+            showTelegram('Welcome, ' + character.name, `Welcome to San Francisco by Night, ${character.name} of Clan ${character.clan}. The Prince has granted you a small territory to prove your worth. Build your influence, expand your domain, and survive the political machinations of the Camarilla. Remember: the First Tradition above all - Maintain the Masquerade.`, [
                 { text: 'Begin my unlife', action: 'close', class: 'primary' }
             ]);
         }, 500);
@@ -1105,8 +1323,10 @@ class IntroScreen {
     showIntroScreen() {
         const introScreen = document.getElementById('introScreen');
         const gameScreen = document.getElementById('gameScreen');
+        const characterCreationScreen = document.getElementById('characterCreationScreen');
         
         gameScreen.classList.add('hidden');
+        characterCreationScreen.classList.add('hidden');
         
         setTimeout(() => {
             introScreen.classList.remove('hidden');
@@ -1114,17 +1334,249 @@ class IntroScreen {
     }
 }
 
+// Character Creation Management
+class CharacterCreation {
+    constructor() {
+        this.character = new Character();
+        this.maxAttributePoints = 7; // Total points to spend (3 base + 4 extra)
+        this.setupEventListeners();
+        this.updateUI();
+    }
+    
+    setupEventListeners() {
+        // Portrait upload
+        document.getElementById('portraitBtn').addEventListener('click', () => {
+            document.getElementById('portraitInput').click();
+        });
+        
+        document.getElementById('portraitInput').addEventListener('change', (e) => {
+            this.handleImageUpload(e);
+        });
+        
+        document.getElementById('portraitPlaceholder').addEventListener('click', () => {
+            document.getElementById('portraitInput').click();
+        });
+        
+        // Character name
+        document.getElementById('characterName').addEventListener('input', (e) => {
+            this.character.name = e.target.value;
+            this.validateCharacter();
+        });
+        
+        // Attribute dots
+        this.setupAttributeDots();
+        
+        // Clan selection
+        document.getElementById('clanSelect').addEventListener('change', (e) => {
+            this.character.clan = e.target.value;
+            this.character.stats.resources = this.character.getStartingResources(e.target.value);
+            this.character.stats.contacts = this.character.getStartingContacts(e.target.value);
+            this.character.traits = this.character.getClanTraits(e.target.value);
+            this.updateClanInfo();
+            this.updateStatsPreview();
+            this.validateCharacter();
+        });
+        
+        // Back to intro
+        document.getElementById('backToIntroBtn').addEventListener('click', () => {
+            introScreenManager.showIntroScreen();
+        });
+        
+        // Create character
+        document.getElementById('createCharacterBtn').addEventListener('click', () => {
+            if (this.character.isValid()) {
+                introScreenManager.startGameWithCharacter(this.character);
+            }
+        });
+    }
+    
+    setupAttributeDots() {
+        ['physical', 'social', 'mental'].forEach(attribute => {
+            const dotsContainer = document.getElementById(attribute + 'Dots');
+            const dots = dotsContainer.querySelectorAll('.dot');
+            
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    const newValue = index + 1;
+                    const currentValue = this.character.attributes[attribute];
+                    
+                    // Calculate current total points used
+                    const currentTotal = this.character.getTotalAttributePoints();
+                    const pointsUsed = currentTotal - 3; // Subtract base 3 points
+                    const pointsAvailable = this.maxAttributePoints - pointsUsed;
+                    const pointsNeeded = newValue - currentValue;
+                    
+                    // Check if we have enough points
+                    if (pointsNeeded > pointsAvailable) {
+                        return; // Not enough points
+                    }
+                    
+                    // Update attribute
+                    this.character.attributes[attribute] = newValue;
+                    this.updateAttributeDisplay(attribute, newValue);
+                    this.updateAttributePoints();
+                    this.validateCharacter();
+                });
+            });
+        });
+    }
+    
+    updateAttributeDisplay(attribute, value) {
+        const dotsContainer = document.getElementById(attribute + 'Dots');
+        const dots = dotsContainer.querySelectorAll('.dot');
+        const valueDisplay = document.getElementById(attribute + 'Value');
+        
+        dots.forEach((dot, index) => {
+            if (index < value) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        valueDisplay.textContent = value;
+    }
+    
+    updateAttributePoints() {
+        const totalUsed = this.character.getTotalAttributePoints();
+        const pointsUsed = totalUsed - 3; // Subtract base 3 points
+        const pointsRemaining = this.maxAttributePoints - pointsUsed;
+        
+        const display = document.getElementById('attributePoints');
+        display.textContent = `(${pointsRemaining} points remaining)`;
+        
+        if (pointsRemaining < 0) {
+            display.style.color = '#ff4444';
+        } else if (pointsRemaining === 0) {
+            display.style.color = '#44ff44';
+        } else {
+            display.style.color = '#8b0000';
+        }
+    }
+    
+    updateClanInfo() {
+        const clanInfo = document.getElementById('clanInfo');
+        const clan = this.character.clan;
+        
+        if (!clan) {
+            clanInfo.innerHTML = '<p class="clan-description">Select a clan to see their traits and abilities.</p>';
+            return;
+        }
+        
+        const traits = this.character.traits;
+        clanInfo.innerHTML = `
+            <p class="clan-description">${this.getClanDescription(clan)}</p>
+            <div class="clan-traits">
+                <strong>Disciplines:</strong> ${traits.discipline1}, ${traits.discipline2}, ${traits.discipline3}<br>
+                <strong>Bane:</strong> ${traits.bane}<br>
+                <strong>Strength:</strong> ${traits.strength}
+            </div>
+        `;
+    }
+    
+    getClanDescription(clan) {
+        const descriptions = {
+            'Ventrue': 'The aristocratic Blue Bloods who rule from the shadows with wealth and authority.',
+            'Toreador': 'Passionate artists and socialites who see beauty in eternal unlife.',
+            'Tremere': 'Secretive blood sorcerers bound by rigid hierarchy and mystical power.',
+            'Brujah': 'Rebellious idealists who fight against oppression with fist and fury.',
+            'Gangrel': 'Nomadic survivors who embrace their bestial nature and freedom.'
+        };
+        return descriptions[clan] || 'Ancient bloodline with mysterious origins.';
+    }
+    
+    updateStatsPreview() {
+        const resources = document.getElementById('resourcesPreview');
+        const contacts = document.getElementById('contactsPreview');
+        
+        resources.textContent = `$${this.character.stats.resources.toLocaleString()}`;
+        contacts.textContent = this.character.stats.contacts;
+    }
+    
+    handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.match(/^image\/(png|jpe?g)$/)) {
+            alert('Please select a PNG or JPEG image file.');
+            return;
+        }
+        
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Image file must be smaller than 2MB.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.getElementById('characterPortrait');
+            const placeholder = document.getElementById('portraitPlaceholder');
+            
+            img.src = e.target.result;
+            img.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            
+            this.character.imageSrc = e.target.result;
+            this.validateCharacter();
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    validateCharacter() {
+        const createBtn = document.getElementById('createCharacterBtn');
+        const isValid = this.character.isValid();
+        const pointsUsed = this.character.getTotalAttributePoints() - 3;
+        const withinPointLimit = pointsUsed <= (this.maxAttributePoints - 3);
+        
+        if (isValid && withinPointLimit) {
+            createBtn.classList.remove('disabled');
+        } else {
+            createBtn.classList.add('disabled');
+        }
+    }
+    
+    updateUI() {
+        // Initialize attribute displays
+        ['physical', 'social', 'mental'].forEach(attribute => {
+            this.updateAttributeDisplay(attribute, this.character.attributes[attribute]);
+        });
+        
+        this.updateAttributePoints();
+        this.updateStatsPreview();
+        this.updateClanInfo();
+        this.validateCharacter();
+    }
+}
+
 // Initialize intro screen when page loads
 let introScreenManager;
+let characterCreationManager;
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
     introScreenManager = new IntroScreen();
+    characterCreationManager = new CharacterCreation();
     
-    // Initially hide the game screen
+    // Initially hide the game screen and character creation screen
     const gameScreen = document.getElementById('gameScreen');
+    const characterCreationScreen = document.getElementById('characterCreationScreen');
+    
     if (gameScreen) {
         gameScreen.classList.add('hidden');
+    }
+    if (characterCreationScreen) {
+        characterCreationScreen.classList.add('hidden');
+    }
+    
+    // Debug map container visibility
+    const mapContainer = document.getElementById('map');
+    if (mapContainer) {
+        console.log('Map container found:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
+    } else {
+        console.error('Map container not found!');
     }
 });
 

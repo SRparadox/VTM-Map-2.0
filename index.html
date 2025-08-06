@@ -50,6 +50,159 @@
         </div>
     </div>
 
+    <!-- Character Creation Screen -->
+    <div id="characterCreationScreen" class="character-creation-screen hidden">
+        <div class="creation-background">
+            <div class="creation-moon"></div>
+            <div class="creation-fog"></div>
+        </div>
+        
+        <div class="creation-container">
+            <div class="creation-header">
+                <h1>CHARACTER CREATION</h1>
+                <h2>Forge Your Kindred Identity</h2>
+            </div>
+            
+            <div class="creation-content">
+                <!-- Character Portrait Section -->
+                <div class="creation-section portrait-section">
+                    <h3>Character Portrait</h3>
+                    <div class="portrait-container">
+                        <div class="portrait-frame">
+                            <img id="characterPortrait" src="" alt="Character Portrait" class="portrait-image hidden">
+                            <div id="portraitPlaceholder" class="portrait-placeholder">
+                                <span class="portrait-icon">👤</span>
+                                <p>Click to add portrait</p>
+                            </div>
+                        </div>
+                        <input type="file" id="portraitInput" accept=".png,.jpg,.jpeg" class="portrait-input">
+                        <button id="portraitBtn" class="portrait-button">Choose Image</button>
+                    </div>
+                </div>
+                
+                <!-- Character Name -->
+                <div class="creation-section name-section">
+                    <h3>Character Name</h3>
+                    <input type="text" id="characterName" class="character-name-input" placeholder="Enter your character's name..." maxlength="30">
+                </div>
+                
+                <!-- Attributes Section -->
+                <div class="creation-section attributes-section">
+                    <h3>Attributes <span class="points-display" id="attributePoints">(7 points to spend)</span></h3>
+                    <div class="attributes-grid">
+                        <div class="attribute-block">
+                            <label>Physical</label>
+                            <div class="dots-container" id="physicalDots">
+                                <span class="dot active" data-value="1"></span>
+                                <span class="dot" data-value="2"></span>
+                                <span class="dot" data-value="3"></span>
+                                <span class="dot" data-value="4"></span>
+                                <span class="dot" data-value="5"></span>
+                            </div>
+                            <span class="attribute-value" id="physicalValue">1</span>
+                        </div>
+                        <div class="attribute-block">
+                            <label>Social</label>
+                            <div class="dots-container" id="socialDots">
+                                <span class="dot active" data-value="1"></span>
+                                <span class="dot" data-value="2"></span>
+                                <span class="dot" data-value="3"></span>
+                                <span class="dot" data-value="4"></span>
+                                <span class="dot" data-value="5"></span>
+                            </div>
+                            <span class="attribute-value" id="socialValue">1</span>
+                        </div>
+                        <div class="attribute-block">
+                            <label>Mental</label>
+                            <div class="dots-container" id="mentalDots">
+                                <span class="dot active" data-value="1"></span>
+                                <span class="dot" data-value="2"></span>
+                                <span class="dot" data-value="3"></span>
+                                <span class="dot" data-value="4"></span>
+                                <span class="dot" data-value="5"></span>
+                            </div>
+                            <span class="attribute-value" id="mentalValue">1</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Clan Selection -->
+                <div class="creation-section clan-section">
+                    <h3>Choose Your Clan</h3>
+                    <select id="clanSelect" class="clan-dropdown">
+                        <option value="">-- Select a Clan --</option>
+                        <option value="Ventrue">Ventrue - The Blue Bloods</option>
+                        <option value="Toreador">Toreador - The Roses</option>
+                        <option value="Tremere">Tremere - The Warlocks</option>
+                        <option value="Brujah">Brujah - The Rebels</option>
+                        <option value="Gangrel">Gangrel - The Outcasts</option>
+                    </select>
+                    <div class="clan-info" id="clanInfo">
+                        <p class="clan-description">Select a clan to see their traits and abilities.</p>
+                    </div>
+                </div>
+                
+                <!-- Starting Stats Preview -->
+                <div class="creation-section stats-section">
+                    <h3>Starting Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-preview">
+                            <label>Blood Pool</label>
+                            <div class="stat-bar-preview">
+                                <div class="stat-fill-preview blood-fill-preview" style="width: 50%"></div>
+                                <span class="stat-text">5/10</span>
+                            </div>
+                        </div>
+                        <div class="stat-preview">
+                            <label>Humanity</label>
+                            <div class="stat-bar-preview">
+                                <div class="stat-fill-preview humanity-fill-preview" style="width: 70%"></div>
+                                <span class="stat-text">7/10</span>
+                            </div>
+                        </div>
+                        <div class="stat-preview">
+                            <label>Resources</label>
+                            <span class="stat-number-preview" id="resourcesPreview">$25,000</span>
+                        </div>
+                        <div class="stat-preview">
+                            <label>Contacts</label>
+                            <span class="stat-number-preview" id="contactsPreview">5</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coterie Panel (Empty) -->
+                <div class="creation-section coterie-section">
+                    <h3>Coterie</h3>
+                    <div class="coterie-panel" id="coteriePanel">
+                        <div class="coterie-empty">
+                            <p>Your coterie is empty. Recruit allies during gameplay to fill these positions.</p>
+                            <div class="coterie-slots">
+                                <div class="coterie-slot empty">Empty</div>
+                                <div class="coterie-slot empty">Empty</div>
+                                <div class="coterie-slot empty">Empty</div>
+                                <div class="coterie-slot empty">Empty</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Creation Actions -->
+            <div class="creation-actions">
+                <button id="backToIntroBtn" class="creation-btn back-btn">
+                    <span class="btn-icon">⬅️</span>
+                    <span class="btn-text">Back</span>
+                </button>
+                
+                <button id="createCharacterBtn" class="creation-btn create-btn disabled">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-text">Create Character</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Game Screen (initially hidden) -->
     <div id="gameScreen" class="game-screen hidden">
         <header class="game-header">
