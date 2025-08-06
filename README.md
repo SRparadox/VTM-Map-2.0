@@ -37,6 +37,8 @@ Character Creation will have the following:
 A box where players can insert a png or jpeg for the picture of their character.
 A attribute blocks which will display 3 attributes: Physical, Social, Mental. Each with five dots. Each dot represents how strong a character is in that department. Skills checks will be tested against a character's dots.
 Dots can only go up to 5 (ie level 5 is maximum).
+A drop down meny for the factions that the player aligns themselves with (this can change later down the story)
+
 A dropdown menu where player can choose clan:
     - Ventrue [has the blue blood tag (this tag will prevent them from feeding from anything other than normal or good blood), a bit more money to start with, +1 contacts]
     - Toreador
@@ -51,6 +53,13 @@ Contacts: This dictates a level of opportunity (based on a nightly difficult che
 
 Finally there will be a coterie panel. This will be empty at the character creation, but this is where the NPC the player recruits will show up at with, where the player can hover over npcs in the coterie panel, which will display their stats. For now no npc or stats have been made.
 
+Stage 5: Pre polish
+Remove the Character Status by instead showing the character's sheet ( plus picture) and a coterie panel
+Add the png symbols for all the clans. Make a foldier where all pngs and pictures will be stores\
+replace the intro screen with a vampire the masquerade background with the background found in the foldier
+Remove domain control.
+Icons on the map will be grey. As they will only show up in color when they are controlled by a faction or the character. The character's faction color depends on what faction the character aligns themselves with.
+Create a seperate file. which will be used to list all of the characters in the map/game with their rective stats, summaries and info, and pngs, however for now they will remain empty.
 
 # not yet implemented
 Main Menu

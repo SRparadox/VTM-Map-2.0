@@ -1,9 +1,10 @@
 // Character Class - Stage 4.5
 class Character {
-    constructor(name = "", clan = "", imageSrc = "") {
+    constructor(name = "", clan = "", imageSrc = "", faction = "camarilla") {
         this.name = name;
         this.clan = clan;
         this.imageSrc = imageSrc;
+        this.faction = faction; // Player's faction alignment
         
         // Attributes (1-5 dots each)
         this.attributes = {
@@ -25,6 +26,9 @@ class Character {
         
         // Coterie (empty at creation)
         this.coterie = [];
+        
+        // Controlled locations (for map pin coloring)
+        this.controlledLocations = [];
         
         // Character flags and history
         this.flags = {
@@ -111,6 +115,58 @@ class Character {
         };
     }
     
+    // Get faction information
+    getFactionInfo(faction) {
+        const factionData = {
+            'camarilla': {
+                name: 'Camarilla',
+                description: 'The Ivory Tower - Ancient vampires who rule through tradition and hierarchy',
+                color: '#c9a96e',
+                benefits: 'Political influence, established domains, ancient knowledge'
+            },
+            'anarchs': {
+                name: 'Anarch Movement', 
+                description: 'Revolutionary vampires who reject the old ways and embrace freedom',
+                color: '#8b0000',
+                benefits: 'Flexibility, street connections, modern adaptability'
+            },
+            'sabbat': {
+                name: 'Sabbat',
+                description: 'Monstrous vampires who embrace their beast nature and wage war',
+                color: '#2c1810', 
+                benefits: 'Raw power, fear tactics, supernatural abilities'
+            },
+            'independent': {
+                name: 'Independent',
+                description: 'Unaligned vampires who chart their own course through the nights',
+                color: '#4a4a4a',
+                benefits: 'Freedom of choice, neutral standing, flexibility'
+            }
+        };
+        
+        return factionData[faction] || factionData['independent'];
+    }
+    
+    // Get faction color for map pins
+    getFactionColor() {
+        return this.getFactionInfo(this.faction).color;
+    }
+    
+    // Add controlled location
+    addControlledLocation(locationId) {
+        if (!this.controlledLocations.includes(locationId)) {
+            this.controlledLocations.push(locationId);
+        }
+    }
+    
+    // Remove controlled location
+    removeControlledLocation(locationId) {
+        const index = this.controlledLocations.indexOf(locationId);
+        if (index > -1) {
+            this.controlledLocations.splice(index, 1);
+        }
+    }
+    
     // Calculate total attribute points (for validation)
     getTotalAttributePoints() {
         return this.attributes.physical + this.attributes.social + this.attributes.mental;
@@ -132,21 +188,24 @@ class Character {
             name: this.name,
             clan: this.clan,
             imageSrc: this.imageSrc,
+            faction: this.faction,
             attributes: this.attributes,
             stats: this.stats,
             traits: this.traits,
             coterie: this.coterie,
+            controlledLocations: this.controlledLocations,
             flags: this.flags
         };
     }
     
     // Load from save data
     static fromSaveData(data) {
-        const character = new Character(data.name, data.clan, data.imageSrc);
+        const character = new Character(data.name, data.clan, data.imageSrc, data.faction);
         character.attributes = data.attributes || character.attributes;
         character.stats = data.stats || character.stats;
         character.traits = data.traits || character.traits;
         character.coterie = data.coterie || character.coterie;
+        character.controlledLocations = data.controlledLocations || character.controlledLocations;
         character.flags = data.flags || character.flags;
         return character;
     }
@@ -176,15 +235,6 @@ class GameState {
             influence: { current: 3, max: 10 },
             contacts: 5,
             resources: 25000
-        };
-        
-        // Domain control percentages
-        this.domainControl = {
-            banking: 15,
-            medical: 8,
-            government: 12,
-            academic: 20,
-            entertainment: 10
         };
         
         this.updateUI();
@@ -227,6 +277,16 @@ class GameState {
         document.getElementById('feedBtn').addEventListener('click', () => this.feed());
         document.getElementById('gatherBtn').addEventListener('click', () => this.gatherIntel());
         document.getElementById('meetBtn').addEventListener('click', () => this.meetContact());
+        
+        // Character sheet button
+        document.getElementById('createCharacterSheetBtn').addEventListener('click', () => {
+            // Show character creation screen
+            if (typeof introScreenManager !== 'undefined' && introScreenManager) {
+                introScreenManager.showCharacterCreation();
+            } else {
+                console.error('introScreenManager not available');
+            }
+        });
     }
     
     nextTurn() {
@@ -316,11 +376,8 @@ class GameState {
         if (this.playerStats.influence.current >= 1) {
             this.playerActions--;
             this.applyStatChange('influence', -1);
-            // Increase domain control in a random area
-            const domains = Object.keys(this.domainControl);
-            const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-            this.domainControl[randomDomain] = Math.min(100, this.domainControl[randomDomain] + 5);
-            this.updateDomainControl();
+            // Increase influence in a random area
+            this.playerStats.influence.current = Math.min(10, this.playerStats.influence.current + 1);
             
             showTelegram('Influence Used', `You've expanded your control over ${randomDomain} operations.`, [
                 { text: 'Excellent', action: 'close' }
@@ -429,7 +486,6 @@ class GameState {
             phaseIndex: this.phaseIndex,
             playerActions: this.playerActions,
             playerStats: this.playerStats,
-            domainControl: this.domainControl,
             character: this.character ? this.character.toSaveData() : null,
             saveDate: new Date().toISOString()
         };
@@ -451,7 +507,6 @@ class GameState {
             this.phaseIndex = gameData.phaseIndex;
             this.playerActions = gameData.playerActions || 3;
             this.playerStats = gameData.playerStats;
-            this.domainControl = gameData.domainControl;
             
             // Load character if available
             if (gameData.character) {
@@ -490,8 +545,39 @@ class GameState {
         nextTurnBtn.textContent = `Next Turn (${this.playerActions} actions left)`;
         
         this.updatePlayerStats();
-        this.updateDomainControl();
+        this.updateCharacterSheet();
         this.updateHeaderBackground();
+    }
+
+    // Update character sheet display
+    updateCharacterSheet() {
+        const characterInfo = document.getElementById('characterInfo');
+        const noCharacter = document.getElementById('noCharacter');
+        
+        if (this.character) {
+            // Show character info, hide no character message
+            characterInfo.style.display = 'flex';
+            noCharacter.style.display = 'none';
+            
+            // Update character details
+            document.getElementById('characterName').textContent = this.character.name || 'Unnamed';
+            document.getElementById('characterClan').textContent = `Clan: ${this.character.clan}`;
+            document.getElementById('characterFaction').textContent = `Faction: ${this.character.faction || 'Independent'}`;
+            
+            // Update clan symbol
+            const clanSymbol = document.getElementById('characterClanSymbol');
+            clanSymbol.src = `./assets/clans/${this.character.clan.toLowerCase()}.png`;
+            clanSymbol.alt = `${this.character.clan} Symbol`;
+            
+            // Update attributes
+            document.getElementById('characterPhysical').textContent = this.character.attributes.physical;
+            document.getElementById('characterSocial').textContent = this.character.attributes.social;
+            document.getElementById('characterMental').textContent = this.character.attributes.mental;
+        } else {
+            // Show no character message, hide character info
+            characterInfo.style.display = 'none';
+            noCharacter.style.display = 'block';
+        }
     }
     
     updatePlayerStats() {
@@ -517,14 +603,6 @@ class GameState {
         document.getElementById('contactsValue').textContent = this.playerStats.contacts;
         document.getElementById('resourcesValue').textContent = 
             `$${this.playerStats.resources.toLocaleString()}`;
-    }
-    
-    updateDomainControl() {
-        document.getElementById('bankingControl').textContent = this.domainControl.banking + '%';
-        document.getElementById('medicalControl').textContent = this.domainControl.medical + '%';
-        document.getElementById('governmentControl').textContent = this.domainControl.government + '%';
-        document.getElementById('academicControl').textContent = this.domainControl.academic + '%';
-        document.getElementById('entertainmentControl').textContent = this.domainControl.entertainment + '%';
     }
     
     updateHeaderBackground() {
@@ -721,8 +799,18 @@ const locationIcons = {
 
 // Function to create custom markers
 function createLocationMarker(location) {
+    // Check if this location is controlled by the player's character or faction
+    const isControlled = gameState.character && 
+        gameState.character.controlledLocations && 
+        gameState.character.controlledLocations.includes(location.name);
+    
+    // Get faction color if controlled, otherwise use grey
+    let markerColor = isControlled && gameState.character && gameState.character.faction 
+        ? factionColors[gameState.character.faction] 
+        : '#666666'; // Default grey for uncontrolled
+    
     const icon = L.divIcon({
-        html: `<div class="custom-marker ${location.type}">${locationIcons[location.type]}</div>`,
+        html: `<div class="custom-marker ${location.type}" style="color: ${markerColor}; filter: ${isControlled ? 'none' : 'grayscale(100%)'}">${locationIcons[location.type]}</div>`,
         className: 'custom-div-icon',
         iconSize: [30, 30],
         iconAnchor: [15, 15]
@@ -736,6 +824,7 @@ function createLocationMarker(location) {
             <h4>${location.name}</h4>
             <div class="location-type">${location.type.charAt(0).toUpperCase() + location.type.slice(1)}</div>
             <p>${location.description}</p>
+            <p class="location-status">Status: ${isControlled ? 'Controlled by your faction' : 'Uncontrolled'}</p>
             <div class="location-actions">
                 <button class="popup-action-btn" onclick="handleLocationAction('${location.type}', '${location.name}')">
                     ${getActionText(location.type)}
@@ -911,8 +1000,8 @@ function handleTelegramAction(action, data) {
         // Bank actions
         case 'deeperBank':
             gameState.applyStatChange('influence', 1);
-            gameState.domainControl.banking = Math.min(100, gameState.domainControl.banking + 10);
-            gameState.updateDomainControl();
+            gameState.playerStats.resources += 5000;
+            gameState.playerStats.influence.current = Math.min(10, gameState.playerStats.influence.current + 1);
             showTelegram("Financial Contact", "You establish deeper connections within the banking system. Your financial influence grows significantly, but you've also attracted attention from other vampires who covet such power.", [
                 { text: "Prepare for challenges", action: "close", class: "primary" }
             ]);
@@ -921,8 +1010,8 @@ function handleTelegramAction(action, data) {
         // Hospital actions
         case 'recruitNurse':
             gameState.applyStatChange('contacts', 1);
-            gameState.domainControl.medical = Math.min(100, gameState.domainControl.medical + 5);
-            gameState.updateDomainControl();
+            gameState.playerStats.bloodPool.current = Math.min(10, gameState.playerStats.bloodPool.current + 1);
+            gameState.playerStats.contacts += 1;
             showTelegram("Medical Informant", "The night shift nurse is now under your influence. She will provide you with inside information about patient schedules and blood storage. A valuable asset indeed.", [
                 { text: "Excellent", action: "close", class: "success" }
             ]);
@@ -941,8 +1030,8 @@ function handleTelegramAction(action, data) {
         // Government actions
         case 'expandNetwork':
             gameState.applyStatChange('influence', 2);
-            gameState.domainControl.government = Math.min(100, gameState.domainControl.government + 10);
-            gameState.updateDomainControl();
+            gameState.playerStats.influence.current = Math.min(10, gameState.playerStats.influence.current + 2);
+            gameState.playerStats.resources += 2000;
             showTelegram("Political Insider", "Your political network expands significantly. You now have contacts in multiple government departments, giving you unprecedented access to city planning and policy decisions.", [
                 { text: "Use this power wisely", action: "close", class: "primary" }
             ]);
@@ -958,8 +1047,8 @@ function handleTelegramAction(action, data) {
         // University actions
         case 'recruitStudents':
             gameState.applyStatChange('contacts', 2);
-            gameState.domainControl.academic = Math.min(100, gameState.domainControl.academic + 8);
-            gameState.updateDomainControl();
+            gameState.playerStats.influence.current = Math.min(10, gameState.playerStats.influence.current + 1);
+            gameState.playerStats.contacts += 2;
             showTelegram("Academic Contact", "Several promising students now serve your interests. They will act as your eyes and ears on campus, reporting on faculty activities and potential threats.", [
                 { text: "Build student network", action: "close", class: "primary" }
             ]);
@@ -993,8 +1082,8 @@ function handleTelegramAction(action, data) {
         // Shopping actions
         case 'establishBusiness':
             gameState.applyStatChange('resources', 10000);
-            gameState.domainControl.entertainment = Math.min(100, gameState.domainControl.entertainment + 5);
-            gameState.updateDomainControl();
+            gameState.playerStats.bloodPool.current = Math.min(10, gameState.playerStats.bloodPool.current + 2);
+            gameState.playerStats.resources += 1000;
             showTelegram("Commercial Contact", "You've established a legitimate business front in the shopping district. This will provide both income and cover for your vampiric activities.", [
                 { text: "Manage the business", action: "close", class: "success" }
             ]);
@@ -1075,9 +1164,25 @@ document.addEventListener('click', (e) => {
 });
 
 // Add all important locations to the map
+// Initialize important locations and markers on map
 importantLocations.forEach(location => {
     createLocationMarker(location);
 });
+
+// Function to refresh map markers with current character/faction colors
+function refreshMapMarkers() {
+    // Clear existing markers
+    map.eachLayer(function (layer) {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Re-add markers with updated colors
+    importantLocations.forEach(location => {
+        createLocationMarker(location);
+    });
+}
 
 // Add custom CSS for markers
 const style = document.createElement('style');
@@ -1200,37 +1305,84 @@ class IntroScreen {
     }
     
     setupEventListeners() {
+        console.log('Setting up intro screen event listeners...');
+        
         // Start Game button - now leads to character creation
-        document.getElementById('startBtn').addEventListener('click', () => {
-            this.showCharacterCreation();
-        });
+        const startBtn = document.getElementById('startBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        
+        console.log('Start button found:', startBtn);
+        console.log('Load button found:', loadBtn);
+        
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                console.log('Start button clicked!');
+                this.showCharacterCreation();
+            });
+        } else {
+            console.error('Start button not found!');
+        }
         
         // Load Game button
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            this.loadExistingGame();
-        });
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => {
+                console.log('Load button clicked!');
+                this.loadExistingGame();
+            });
+        } else {
+            console.error('Load button not found!');
+        }
         
         // Disabled buttons (Options and Exit) - no functionality for now
-        document.getElementById('optionsBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            // No functionality yet - button is disabled
-        });
+        const optionsBtn = document.getElementById('optionsBtn');
+        const exitBtn = document.getElementById('exitBtn');
         
-        document.getElementById('exitBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            // No functionality yet - button is disabled
-        });
+        if (optionsBtn) {
+            optionsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Options button clicked (disabled)');
+                // No functionality yet - button is disabled
+            });
+        }
+        
+        if (exitBtn) {
+            exitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Exit button clicked (disabled)');
+                // No functionality yet - button is disabled
+            });
+        }
     }
     
     showCharacterCreation() {
-        const introScreen = document.getElementById('introScreen');
-        const characterCreationScreen = document.getElementById('characterCreationScreen');
+        console.log('showCharacterCreation called!');
         
-        introScreen.classList.add('hidden');
-        
-        setTimeout(() => {
-            characterCreationScreen.classList.remove('hidden');
-        }, 1000);
+        try {
+            const introScreen = document.getElementById('introScreen');
+            const characterCreationScreen = document.getElementById('characterCreationScreen');
+            
+            console.log('Intro screen element:', introScreen);
+            console.log('Character creation screen element:', characterCreationScreen);
+            
+            if (!introScreen) {
+                console.error('Intro screen element not found!');
+                return;
+            }
+            
+            if (!characterCreationScreen) {
+                console.error('Character creation screen element not found!');
+                return;
+            }
+            
+            introScreen.classList.add('hidden');
+            
+            setTimeout(() => {
+                characterCreationScreen.classList.remove('hidden');
+                console.log('Character creation screen should now be visible');
+            }, 1000);
+        } catch (error) {
+            console.error('Error in showCharacterCreation:', error);
+        }
     }
     
     startGameWithCharacter(character) {
@@ -1254,36 +1406,52 @@ class IntroScreen {
     }
     
     loadExistingGame() {
-        const savedData = localStorage.getItem('vtm-sf-save');
+        console.log('loadExistingGame called!');
         
-        if (savedData) {
-            const confirmLoad = confirm('Load existing save game? This will start from your last saved progress.');
+        try {
+            const savedData = localStorage.getItem('vtm-sf-save');
             
-            if (confirmLoad) {
-                const introScreen = document.getElementById('introScreen');
-                const gameScreen = document.getElementById('gameScreen');
+            console.log('Saved data found:', !!savedData);
+            
+            if (savedData) {
+                const confirmLoad = confirm('Load existing save game? This will start from your last saved progress.');
                 
-                introScreen.classList.add('hidden');
-                
-                setTimeout(() => {
-                    gameScreen.classList.remove('hidden');
-                    if (!gameState) {
-                        gameState = new GameState();
-                    }
-                    gameState.loadGame();
+                if (confirmLoad) {
+                    const introScreen = document.getElementById('introScreen');
+                    const gameScreen = document.getElementById('gameScreen');
                     
-                    // Fix map rendering after screen transition
+                    console.log('Intro screen element:', introScreen);
+                    console.log('Game screen element:', gameScreen);
+                    
+                    if (!introScreen || !gameScreen) {
+                        console.error('Required screen elements not found!');
+                        return;
+                    }
+                    
+                    introScreen.classList.add('hidden');
+                    
                     setTimeout(() => {
-                        if (typeof map !== 'undefined') {
-                            map.invalidateSize();
-                            console.log('Map size invalidated after loading game');
+                        gameScreen.classList.remove('hidden');
+                        if (!gameState) {
+                            gameState = new GameState();
                         }
-                    }, 100);
-                }, 1000);
+                        gameState.loadGame();
+                        
+                        // Fix map rendering after screen transition
+                        setTimeout(() => {
+                            if (typeof map !== 'undefined') {
+                                map.invalidateSize();
+                                console.log('Map size invalidated after loading game');
+                            }
+                        }, 100);
+                    }, 1000);
+                }
+            } else {
+                alert('No saved game found. Starting character creation instead.');
+                this.showCharacterCreation();
             }
-        } else {
-            alert('No saved game found. Starting character creation instead.');
-            this.showCharacterCreation();
+        } catch (error) {
+            console.error('Error in loadExistingGame:', error);
         }
     }
     
@@ -1311,6 +1479,11 @@ class IntroScreen {
         gameState.updateUI();
         gameState.updateMoonAnimation();
         
+        // Refresh map markers with new character faction colors
+        if (typeof refreshMapMarkers === 'function') {
+            refreshMapMarkers();
+        }
+        
         // Show welcome message with character name
         setTimeout(() => {
             showTelegram('Welcome, ' + character.name, `Welcome to San Francisco by Night, ${character.name} of Clan ${character.clan}. The Prince has granted you a small territory to prove your worth. Build your influence, expand your domain, and survive the political machinations of the Camarilla. Remember: the First Tradition above all - Maintain the Masquerade.`, [
@@ -1337,57 +1510,104 @@ class IntroScreen {
 // Character Creation Management
 class CharacterCreation {
     constructor() {
-        this.character = new Character();
-        this.maxAttributePoints = 7; // Total points to spend (3 base + 4 extra)
-        this.setupEventListeners();
-        this.updateUI();
+        console.log('CharacterCreation constructor called');
+        
+        try {
+            this.character = new Character();
+            this.maxAttributePoints = 7; // Total points to spend (3 base + 4 extra)
+            this.setupEventListeners();
+            this.updateUI();
+            console.log('CharacterCreation initialized successfully');
+        } catch (error) {
+            console.error('Error in CharacterCreation constructor:', error);
+        }
     }
     
     setupEventListeners() {
-        // Portrait upload
-        document.getElementById('portraitBtn').addEventListener('click', () => {
-            document.getElementById('portraitInput').click();
-        });
+        console.log('Setting up CharacterCreation event listeners...');
         
-        document.getElementById('portraitInput').addEventListener('change', (e) => {
-            this.handleImageUpload(e);
-        });
-        
-        document.getElementById('portraitPlaceholder').addEventListener('click', () => {
-            document.getElementById('portraitInput').click();
-        });
-        
-        // Character name
-        document.getElementById('characterName').addEventListener('input', (e) => {
-            this.character.name = e.target.value;
-            this.validateCharacter();
-        });
-        
-        // Attribute dots
-        this.setupAttributeDots();
-        
-        // Clan selection
-        document.getElementById('clanSelect').addEventListener('change', (e) => {
-            this.character.clan = e.target.value;
-            this.character.stats.resources = this.character.getStartingResources(e.target.value);
-            this.character.stats.contacts = this.character.getStartingContacts(e.target.value);
-            this.character.traits = this.character.getClanTraits(e.target.value);
-            this.updateClanInfo();
-            this.updateStatsPreview();
-            this.validateCharacter();
-        });
-        
-        // Back to intro
-        document.getElementById('backToIntroBtn').addEventListener('click', () => {
-            introScreenManager.showIntroScreen();
-        });
-        
-        // Create character
-        document.getElementById('createCharacterBtn').addEventListener('click', () => {
-            if (this.character.isValid()) {
-                introScreenManager.startGameWithCharacter(this.character);
+        try {
+            // Portrait upload
+            const portraitBtn = document.getElementById('portraitBtn');
+            const portraitInput = document.getElementById('portraitInput');
+            const portraitPlaceholder = document.getElementById('portraitPlaceholder');
+            
+            if (portraitBtn && portraitInput && portraitPlaceholder) {
+                portraitBtn.addEventListener('click', () => {
+                    portraitInput.click();
+                });
+                
+                portraitInput.addEventListener('change', (e) => {
+                    this.handleImageUpload(e);
+                });
+                
+                portraitPlaceholder.addEventListener('click', () => {
+                    portraitInput.click();
+                });
+            } else {
+                console.warn('Some portrait elements not found:', { portraitBtn, portraitInput, portraitPlaceholder });
             }
-        });
+            
+            // Character name
+            const characterNameInput = document.getElementById('characterName');
+            if (characterNameInput) {
+                characterNameInput.addEventListener('input', (e) => {
+                    this.character.name = e.target.value;
+                    this.validateCharacter();
+                });
+            } else {
+                console.warn('Character name input not found');
+            }
+            
+            // Attribute dots
+            this.setupAttributeDots();
+            
+            // Clan selection
+            const clanSelect = document.getElementById('clanSelect');
+            if (clanSelect) {
+                clanSelect.addEventListener('change', (e) => {
+                    this.character.clan = e.target.value;
+                    this.character.stats.resources = this.character.getStartingResources(e.target.value);
+                    this.character.stats.contacts = this.character.getStartingContacts(e.target.value);
+                    this.character.traits = this.character.getClanTraits(e.target.value);
+                    this.updateClanInfo();
+                    this.updateStatsPreview();
+                    this.validateCharacter();
+                });
+            }
+            
+            // Faction selection
+            const factionSelect = document.getElementById('factionSelect');
+            if (factionSelect) {
+                factionSelect.addEventListener('change', (e) => {
+                    this.character.faction = e.target.value;
+                    this.updateFactionInfo();
+                    this.validateCharacter();
+                });
+            }
+            
+            // Back to intro
+            const backToIntroBtn = document.getElementById('backToIntroBtn');
+            if (backToIntroBtn) {
+                backToIntroBtn.addEventListener('click', () => {
+                    introScreenManager.showIntroScreen();
+                });
+            }
+            
+            // Create character
+            const createCharacterBtn = document.getElementById('createCharacterBtn');
+            if (createCharacterBtn) {
+                createCharacterBtn.addEventListener('click', () => {
+                    if (this.character.isValid()) {
+                        introScreenManager.startGameWithCharacter(this.character);
+                    }
+                });
+            }
+            
+            console.log('CharacterCreation event listeners set up successfully');
+        } catch (error) {
+            console.error('Error setting up CharacterCreation event listeners:', error);
+        }
     }
     
     setupAttributeDots() {
@@ -1465,11 +1685,35 @@ class CharacterCreation {
         
         const traits = this.character.traits;
         clanInfo.innerHTML = `
-            <p class="clan-description">${this.getClanDescription(clan)}</p>
-            <div class="clan-traits">
-                <strong>Disciplines:</strong> ${traits.discipline1}, ${traits.discipline2}, ${traits.discipline3}<br>
-                <strong>Bane:</strong> ${traits.bane}<br>
-                <strong>Strength:</strong> ${traits.strength}
+            <div class="clan-details">
+                <div class="clan-image">
+                    <img src="./assets/clans/${clan.toLowerCase()}.png" 
+                         alt="${clan} Symbol" 
+                         class="clan-preview-symbol"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="clan-text">
+                    <p class="clan-description">${this.getClanDescription(clan)}</p>
+                    <div class="clan-traits">
+                        <strong>Disciplines:</strong> ${traits.discipline1}, ${traits.discipline2}, ${traits.discipline3}<br>
+                        <strong>Bane:</strong> ${traits.bane}<br>
+                        <strong>Strength:</strong> ${traits.strength}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    updateFactionInfo() {
+        const factionInfo = document.getElementById('factionInfo');
+        const faction = this.character.faction;
+        
+        const factionData = this.character.getFactionInfo(faction);
+        factionInfo.innerHTML = `
+            <p class="faction-description">${factionData.description}</p>
+            <div class="faction-traits" style="color: ${factionData.color};">
+                <strong>Benefits:</strong> ${factionData.benefits}<br>
+                <strong>Pin Color:</strong> <span style="background: ${factionData.color}; padding: 2px 8px; border-radius: 3px; color: #fff;">${factionData.color}</span>
             </div>
         `;
     }
@@ -1547,6 +1791,7 @@ class CharacterCreation {
         this.updateAttributePoints();
         this.updateStatsPreview();
         this.updateClanInfo();
+        this.updateFactionInfo();
         this.validateCharacter();
     }
 }
@@ -1557,27 +1802,33 @@ let characterCreationManager;
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
-    introScreenManager = new IntroScreen();
-    characterCreationManager = new CharacterCreation();
+    console.log('DOM Content Loaded!');
     
-    // Initially hide the game screen and character creation screen
-    const gameScreen = document.getElementById('gameScreen');
-    const characterCreationScreen = document.getElementById('characterCreationScreen');
-    
-    if (gameScreen) {
-        gameScreen.classList.add('hidden');
-    }
-    if (characterCreationScreen) {
-        characterCreationScreen.classList.add('hidden');
-    }
-    
-    // Debug map container visibility
-    const mapContainer = document.getElementById('map');
-    if (mapContainer) {
-        console.log('Map container found:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
-    } else {
-        console.error('Map container not found!');
-    }
+    // Small delay to ensure all elements are rendered
+    setTimeout(() => {
+        console.log('Initializing intro screen...');
+        introScreenManager = new IntroScreen();
+        characterCreationManager = new CharacterCreation();
+        
+        // Initially hide the game screen and character creation screen
+        const gameScreen = document.getElementById('gameScreen');
+        const characterCreationScreen = document.getElementById('characterCreationScreen');
+        
+        if (gameScreen) {
+            gameScreen.classList.add('hidden');
+        }
+        if (characterCreationScreen) {
+            characterCreationScreen.classList.add('hidden');
+        }
+        
+        // Debug map container visibility
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            console.log('Map container found:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
+        } else {
+            console.error('Map container not found!');
+        }
+    }, 100);
 });
 
 console.log("Vampire: The Masquerade - San Francisco by Night initialized");
