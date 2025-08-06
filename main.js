@@ -442,8 +442,8 @@ class GameState {
     }
 }
 
-// Initialize game state
-const gameState = new GameState();
+// Global game state variable (will be initialized when game starts)
+let gameState;
 
 // Important San Francisco locations for vampire politics - Expanded with OSM data structure
 const importantLocations = [
@@ -985,11 +985,152 @@ document.getElementById('meetBtn').addEventListener('click', () => {
     }
 });
 
-// Initialize UI
-gameState.updateUI();
+// ========== INTRO SCREEN FUNCTIONALITY ==========
+
+// Intro screen management
+class IntroScreen {
+    constructor() {
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        // Start Game button
+        document.getElementById('startBtn').addEventListener('click', () => {
+            this.startNewGame();
+        });
+        
+        // Load Game button
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            this.loadExistingGame();
+        });
+        
+        // Disabled buttons (Options and Exit) - no functionality for now
+        document.getElementById('optionsBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            // No functionality yet - button is disabled
+        });
+        
+        document.getElementById('exitBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            // No functionality yet - button is disabled
+        });
+    }
+    
+    startNewGame() {
+        // Hide intro screen with fade effect
+        const introScreen = document.getElementById('introScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        
+        introScreen.classList.add('hidden');
+        
+        // Wait for fade out, then show game screen
+        setTimeout(() => {
+            gameScreen.classList.remove('hidden');
+            this.initializeGame();
+        }, 1000);
+    }
+    
+    loadExistingGame() {
+        const savedData = localStorage.getItem('vtm-sf-save');
+        
+        if (savedData) {
+            // Show confirmation dialog
+            const confirmLoad = confirm('Load existing save game? This will start from your last saved progress.');
+            
+            if (confirmLoad) {
+                // Hide intro screen
+                const introScreen = document.getElementById('introScreen');
+                const gameScreen = document.getElementById('gameScreen');
+                
+                introScreen.classList.add('hidden');
+                
+                setTimeout(() => {
+                    gameScreen.classList.remove('hidden');
+                    // Initialize game state if not already done
+                    if (!gameState) {
+                        gameState = new GameState();
+                    }
+                    // Load the game data
+                    gameState.loadGame();
+                }, 1000);
+            }
+        } else {
+            // No save found - show message
+            alert('No saved game found. Starting a new game instead.');
+            this.startNewGame();
+        }
+    }
+    
+    initializeGame() {
+        // Initialize game state
+        gameState = new GameState();
+        
+        // Reset game state to beginning
+        gameState.currentNight = 1;
+        gameState.currentPhase = 'Dusk';
+        gameState.phaseIndex = 0;
+        gameState.playerActions = 3;
+        
+        // Reset player stats to starting values
+        gameState.playerStats = {
+            bloodPool: { current: 10, max: 10 },
+            humanity: { current: 7, max: 10 },
+            influence: { current: 3, max: 10 },
+            contacts: 5,
+            resources: 25000
+        };
+        
+        // Reset domain control
+        gameState.domainControl = {
+            banking: 15,
+            medical: 8,
+            government: 12,
+            academic: 20,
+            entertainment: 10
+        };
+        
+        // Update all UI elements
+        gameState.updateUI();
+        gameState.updateMoonAnimation();
+        
+        // Show welcome message
+        setTimeout(() => {
+            showTelegram('Welcome', 'Welcome to San Francisco by Night, young Kindred. The Prince has granted you a small territory to prove your worth. Build your influence, expand your domain, and survive the political machinations of the Camarilla. Remember: the First Tradition above all - Maintain the Masquerade.', [
+                { text: 'Begin my unlife', action: 'close', class: 'primary' }
+            ]);
+        }, 500);
+    }
+    
+    // Method to return to intro screen (for future use)
+    showIntroScreen() {
+        const introScreen = document.getElementById('introScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        
+        gameScreen.classList.add('hidden');
+        
+        setTimeout(() => {
+            introScreen.classList.remove('hidden');
+        }, 1000);
+    }
+}
+
+// Initialize intro screen when page loads
+let introScreenManager;
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+    introScreenManager = new IntroScreen();
+    
+    // Initially hide the game screen
+    const gameScreen = document.getElementById('gameScreen');
+    if (gameScreen) {
+        gameScreen.classList.add('hidden');
+    }
+});
 
 console.log("Vampire: The Masquerade - San Francisco by Night initialized");
 console.log("Stage 1: Map with location markers - Complete");
 console.log("Stage 2: Basic turn management - Complete");
 console.log("Stage 3: Moon arc animation with lighting - Complete");
+console.log("Stage 4: Intro screen with Start, Load, Options, Exit buttons - Complete");
 console.log("Ready for political intrigue...");

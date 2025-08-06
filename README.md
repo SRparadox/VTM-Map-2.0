@@ -25,6 +25,32 @@ Including core game features.
 Including Saving and Loading Game state.
 Player stats and resources displayed instead of important locations on the left side bar
 
+# Stage 4
+Make an intro screen, with a start, load, options and exits buttons. For now the options and exit buttons are disabled. 
+
+# Stage 4.5 
+Creation of a character class which will host valuable information, flags and will be used in reference.
+
+Start button will lead to character creation. Character Creation is a screen screen which will display the character sheet, with at the the end, a create button which will launch into the main game, or a back button which will backtrack to the intro screen.
+The player's character and states will also be saved in the save files when a game is saved/
+Character Creation will have the following:
+A box where players can insert a png or jpeg for the picture of their character.
+A attribute blocks which will display 3 attributes: Physical, Social, Mental. Each with five dots. Each dot represents how strong a character is in that department. Skills checks will be tested against a character's dots.
+Dots can only go up to 5 (ie level 5 is maximum).
+A dropdown menu where player can choose clan:
+    - Ventrue [has the blue blood tag (this tag will prevent them from feeding from anything other than normal or good blood), a bit more money to start with, +1 contacts]
+    - Toreador
+    - Tremere
+    - Brujah
+    - Gangrel
+Then there will be the stat blocks which will list the following stats.
+Blood Pool: out of 10, (player will start with 5/10) this will determine how hungry the player is. Difficulty checks can be increased by how hungry a player is
+Humanity: out of 10 (player will start with 7) this will determine how moral a person is, there will be some difficulty checks that will test humanity
+Resources: Money (this will be used to pay for stuff) there will be a daily drain in finances, and hovering over the resource stat in game will display what drains (for example -$1000 a night for renting locations...etc, or +2000 a night for owning a nightclub, modifiers will be gained or lost depending on choices)
+Contacts: This dictates a level of opportunity (based on a nightly difficult check), information gathering (based on a nightly difficulty check), and a potential reroll when a difficulty check is not done (at the expense of 1 contact)
+
+Finally there will be a coterie panel. This will be empty at the character creation, but this is where the NPC the player recruits will show up at with, where the player can hover over npcs in the coterie panel, which will display their stats. For now no npc or stats have been made.
+
 
 # not yet implemented
 Main Menu
