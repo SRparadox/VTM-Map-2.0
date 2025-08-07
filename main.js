@@ -553,11 +553,18 @@ class GameState {
     updateCharacterSheet() {
         const characterInfo = document.getElementById('characterInfo');
         const noCharacter = document.getElementById('noCharacter');
+        const characterSheet = document.getElementById('characterSheet');
         
         if (this.character) {
             // Show character info, hide no character message
             characterInfo.style.display = 'flex';
             noCharacter.style.display = 'none';
+            
+            // Apply clan-specific font styling
+            characterSheet.className = 'character-sheet';
+            if (this.character.clan) {
+                characterSheet.classList.add(`clan-${this.character.clan.toLowerCase()}`);
+            }
             
             // Update character details
             document.getElementById('characterName').textContent = this.character.name || 'Unnamed';
@@ -577,21 +584,44 @@ class GameState {
             // Show no character message, hide character info
             characterInfo.style.display = 'none';
             noCharacter.style.display = 'block';
+            
+            // Reset character sheet styling
+            characterSheet.className = 'character-sheet';
         }
     }
     
     updatePlayerStats() {
+        const playerStatsElement = document.querySelector('.player-stats');
+        
+        // Remove existing vampire state classes
+        playerStatsElement.classList.remove('hungry', 'low-humanity', 'beast-rising');
+        
         // Update blood pool
         const bloodPercentage = (this.playerStats.bloodPool.current / this.playerStats.bloodPool.max) * 100;
         document.getElementById('bloodFill').style.width = bloodPercentage + '%';
         document.getElementById('bloodValue').textContent = 
             `${this.playerStats.bloodPool.current}/${this.playerStats.bloodPool.max}`;
         
+        // Apply hungry state if blood pool is low
+        if (this.playerStats.bloodPool.current <= 2) {
+            playerStatsElement.classList.add('hungry');
+        }
+        
         // Update humanity
         const humanityPercentage = (this.playerStats.humanity.current / this.playerStats.humanity.max) * 100;
         document.getElementById('humanityFill').style.width = humanityPercentage + '%';
         document.getElementById('humanityValue').textContent = 
             `${this.playerStats.humanity.current}/${this.playerStats.humanity.max}`;
+        
+        // Apply low humanity state
+        if (this.playerStats.humanity.current <= 3) {
+            playerStatsElement.classList.add('low-humanity');
+        }
+        
+        // Apply beast rising state for critical conditions
+        if (this.playerStats.bloodPool.current <= 1 && this.playerStats.humanity.current <= 2) {
+            playerStatsElement.classList.add('beast-rising');
+        }
         
         // Update influence
         const influencePercentage = (this.playerStats.influence.current / this.playerStats.influence.max) * 100;
@@ -1692,11 +1722,22 @@ class CharacterCreation {
     
     updateClanInfo() {
         const clanInfo = document.getElementById('clanInfo');
+        const clanSection = document.querySelector('.clan-section');
         const clan = this.character.clan;
+        
+        // Reset clan-specific styling
+        if (clanSection) {
+            clanSection.className = 'creation-section clan-section';
+        }
         
         if (!clan) {
             clanInfo.innerHTML = '<p class="clan-description">Select a clan to see their traits and abilities.</p>';
             return;
+        }
+        
+        // Apply clan-specific styling
+        if (clanSection) {
+            clanSection.classList.add(`clan-${clan.toLowerCase()}`);
         }
         
         const traits = this.character.traits;

@@ -1,7 +1,113 @@
+/* ========== VAMPIRE FONTS ========== */
+@font-face {
+    font-family: 'Clan-Ventrue';
+    src: url('./assets/Fonts/Caesar.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clan-Toreador';
+    src: url('./assets/Fonts/Viata.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clan-Tremere';
+    src: url('./assets/Fonts/Mage.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clan-Brujah';
+    src: url('./assets/Fonts/Chiseled.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clan-Gangrel';
+    src: url('./assets/Fonts/Northern Territories.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gothic-Title';
+    src: url('./assets/Fonts/Aquiline.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gothic-Subtitle';
+    src: url('./assets/Fonts/AquilineTwo.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ancient-Script';
+    src: url('./assets/Fonts/MALKI.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Blood-Script';
+    src: url('./assets/Fonts/MISTRAL.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vampire-Display';
+    src: url('./assets/Fonts/splash__.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gothic-Body';
+    src: url('./assets/Fonts/Cormorant-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gothic-Bold';
+    src: url('./assets/Fonts/Cormorant-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Elegant-Caps';
+    src: url('./assets/Fonts/MrsEavesSmallCaps.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Digital-Display';
+    src: url('./assets/Fonts/Digital_Display_Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vampire-Initials';
+    src: url('./assets/Fonts/Roycroft-Initials.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     background: linear-gradient(135deg, #1a1a1a 0%, #2d1b2d 100%);
     color: #e8e8e8;
     overflow: hidden;
@@ -97,7 +203,7 @@ body {
 }
 
 .intro-title {
-    font-family: 'Cinzel', serif;
+    font-family: 'Vampire-Display', 'Gothic-Title', 'Cinzel', serif;
     font-size: 4rem;
     font-weight: 700;
     color: #c9a96e;
@@ -124,7 +230,7 @@ body {
 }
 
 .intro-subtitle {
-    font-family: 'Cinzel', serif;
+    font-family: 'Blood-Script', 'Gothic-Subtitle', 'Cinzel', serif;
     font-size: 2rem;
     font-weight: 600;
     color: #8b0000;
@@ -134,7 +240,7 @@ body {
 }
 
 .intro-location {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Ancient-Script', 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1.4rem;
     color: #ddd;
     font-style: italic;
@@ -159,7 +265,7 @@ body {
     border: 2px solid rgba(201, 169, 110, 0.3);
     border-radius: 8px;
     color: #e8e8e8;
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
@@ -203,12 +309,24 @@ body {
 }
 
 .intro-tagline {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Blood-Script', 'Ancient-Script', 'Crimson Text', serif;
     font-size: 1.1rem;
     color: #c9a96e;
     font-style: italic;
     margin: 0 0 15px 0;
     opacity: 0.8;
+}
+
+/* Special first letter effect for tagline */
+.intro-tagline::first-letter {
+    font-family: 'Vampire-Initials', 'Gothic-Title', serif;
+    font-size: 2.5rem;
+    float: left;
+    line-height: 1;
+    margin-right: 5px;
+    margin-top: 2px;
+    color: #8b0000;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .intro-version {
@@ -284,7 +402,7 @@ body {
 }
 
 .creation-header h1 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Vampire-Display', 'Gothic-Title', 'Cinzel', serif;
     font-size: 3rem;
     font-weight: 700;
     color: #c9a96e;
@@ -294,7 +412,7 @@ body {
 }
 
 .creation-header h2 {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Ancient-Script', 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1.3rem;
     color: #ddd;
     font-style: italic;
@@ -350,7 +468,7 @@ body {
 }
 
 .creation-section h3 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     color: #c9a96e;
     margin-top: 0;
     margin-bottom: 15px;
@@ -448,7 +566,7 @@ body {
     border: 2px solid rgba(201, 169, 110, 0.3);
     border-radius: 6px;
     color: #e8e8e8;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1.1rem;
     transition: all 0.3s ease;
 }
@@ -481,7 +599,7 @@ body {
 
 .attribute-block label {
     display: block;
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     color: #c9a96e;
     margin-bottom: 10px;
     font-weight: 600;
@@ -536,7 +654,7 @@ body {
     border: 2px solid rgba(201, 169, 110, 0.3);
     border-radius: 6px;
     color: #e8e8e8;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1rem;
     cursor: pointer;
     margin-bottom: 15px;
@@ -603,6 +721,7 @@ body {
     font-style: italic;
     margin: 0;
     line-height: 1.4;
+    font-family: 'Gothic-Body', serif;
 }
 
 .clan-traits, .faction-traits {
@@ -610,6 +729,33 @@ body {
     font-size: 0.9rem;
     line-height: 1.3;
     margin: 10px 0 0 0;
+    font-family: 'Ancient-Script', 'Gothic-Body', serif;
+}
+
+/* Clan-specific styling for dropdowns and info */
+.clan-section.clan-ventrue .clan-info,
+.clan-section.clan-ventrue .clan-dropdown option[value="Ventrue"] {
+    font-family: 'Clan-Ventrue', serif;
+}
+
+.clan-section.clan-toreador .clan-info,
+.clan-section.clan-toreador .clan-dropdown option[value="Toreador"] {
+    font-family: 'Clan-Toreador', serif;
+}
+
+.clan-section.clan-tremere .clan-info,
+.clan-section.clan-tremere .clan-dropdown option[value="Tremere"] {
+    font-family: 'Clan-Tremere', serif;
+}
+
+.clan-section.clan-brujah .clan-info,
+.clan-section.clan-brujah .clan-dropdown option[value="Brujah"] {
+    font-family: 'Clan-Brujah', serif;
+}
+
+.clan-section.clan-gangrel .clan-info,
+.clan-section.clan-gangrel .clan-dropdown option[value="Gangrel"] {
+    font-family: 'Clan-Gangrel', serif;
 }
 
 /* Stats Section */
@@ -734,7 +880,7 @@ body {
     border: 2px solid rgba(201, 169, 110, 0.3);
     border-radius: 8px;
     color: #e8e8e8;
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
@@ -802,7 +948,7 @@ body {
 }
 
 .game-header h1 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Vampire-Display', 'Gothic-Title', 'Cinzel', serif;
     font-size: 2rem;
     margin: 0;
     color: #fff;
@@ -810,6 +956,7 @@ body {
 }
 
 .game-header h2 {
+    font-family: 'Blood-Script', 'Ancient-Script', serif;
     font-size: 1.2rem;
     margin: 5px 0;
     color: #ddd;
@@ -839,7 +986,7 @@ body {
     padding: 8px 20px;
     border-radius: 25px;
     cursor: pointer;
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -866,7 +1013,7 @@ body {
 }
 
 .sidebar h3 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     color: #c9a96e;
     margin-top: 0;
     margin-bottom: 15px;
@@ -914,7 +1061,7 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1rem;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -961,7 +1108,7 @@ body {
 }
 
 .leaflet-popup-content {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     font-size: 14px;
     line-height: 1.4;
     margin: 10px 12px;
@@ -973,7 +1120,7 @@ body {
 }
 
 .location-popup h4 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     color: #c9a96e;
     margin: 0 0 8px 0;
     font-size: 1.1rem;
@@ -1061,7 +1208,7 @@ body {
     align-items: center;
     gap: 10px;
     color: #fff;
-    font-family: 'Cinzel', serif;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
     font-weight: 600;
     font-size: 1.1rem;
 }
@@ -1102,7 +1249,7 @@ body {
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 0 8px 8px 0;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     line-height: 1.5;
 }
 
@@ -1124,7 +1271,7 @@ body {
     padding: 12px 20px;
     border-radius: 6px;
     cursor: pointer;
-    font-family: 'Crimson Text', serif;
+    font-family: 'Gothic-Body', 'Crimson Text', serif;
     font-size: 1rem;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -1248,9 +1395,25 @@ body {
     border-bottom: 2px solid #8b4513;
 }
 
+.game-header.dusk h1 {
+    color: #f4a460; /* Sandy brown for dusk */
+}
+
+.game-header.dusk h2 {
+    color: #deb887; /* Burlywood for dusk subtitle */
+}
+
 .game-header.night {
     background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
     border-bottom: 2px solid #4169e1;
+}
+
+.game-header.night h1 {
+    color: #e6e6fa; /* Lavender for night */
+}
+
+.game-header.night h2 {
+    color: #b0c4de; /* Light steel blue for night subtitle */
 }
 
 .game-header.midnight {
@@ -1258,9 +1421,26 @@ body {
     border-bottom: 2px solid #191970;
 }
 
+.game-header.midnight h1 {
+    color: #f0f8ff; /* Alice blue for midnight */
+    text-shadow: 0 0 10px rgba(240, 248, 255, 0.5);
+}
+
+.game-header.midnight h2 {
+    color: #e0e6ff; /* Pale lavender for midnight subtitle */
+}
+
 .game-header.dawn {
     background: linear-gradient(90deg, #3d2a3d 0%, #4a3349 100%);
     border-bottom: 2px solid #8b008b;
+}
+
+.game-header.dawn h1 {
+    color: #dda0dd; /* Plum for dawn */
+}
+
+.game-header.dawn h2 {
+    color: #d8bfd8; /* Thistle for dawn subtitle */
 }
 
 /* Player Stats and Resources Styling */
@@ -1273,12 +1453,79 @@ body {
 }
 
 .player-stats h3, .player-resources h3, .character-sheet h3, .coterie-panel h3 {
+    font-family: 'Elegant-Caps', 'Gothic-Bold', serif;
     color: #CD5C5C;
     margin: 0 0 15px 0;
     font-size: 1.2em;
     text-align: center;
     border-bottom: 1px solid #8B0000;
     padding-bottom: 8px;
+}
+
+/* Clan-specific character sheet fonts */
+.character-sheet.clan-ventrue .character-basic h4,
+.character-sheet.clan-ventrue .character-details {
+    font-family: 'Clan-Ventrue', 'Gothic-Body', serif;
+}
+
+.character-sheet.clan-toreador .character-basic h4,
+.character-sheet.clan-toreador .character-details {
+    font-family: 'Clan-Toreador', 'Gothic-Body', serif;
+}
+
+.character-sheet.clan-tremere .character-basic h4,
+.character-sheet.clan-tremere .character-details {
+    font-family: 'Clan-Tremere', 'Gothic-Body', serif;
+}
+
+.character-sheet.clan-brujah .character-basic h4,
+.character-sheet.clan-brujah .character-details {
+    font-family: 'Clan-Brujah', 'Gothic-Body', serif;
+}
+
+.character-sheet.clan-gangrel .character-basic h4,
+.character-sheet.clan-gangrel .character-details {
+    font-family: 'Clan-Gangrel', 'Gothic-Body', serif;
+}
+
+/* Digital display for stats */
+.stat-value, .stat-number, .resource-value {
+    font-family: 'Digital-Display', monospace;
+}
+
+/* Special vampire state styling */
+.player-stats.hungry .stat-label {
+    color: #8b0000;
+    font-family: 'Blood-Script', serif;
+    animation: hungerPulse 2s ease-in-out infinite;
+}
+
+@keyframes hungerPulse {
+    0%, 100% { color: #8b0000; }
+    50% { color: #dc143c; }
+}
+
+.player-stats.low-humanity .stat-label {
+    color: #666;
+    font-family: 'Ancient-Script', serif;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.player-stats.beast-rising h3 {
+    font-family: 'Vampire-Display', serif;
+    color: #dc143c;
+    animation: beastGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes beastGlow {
+    0% { 
+        color: #dc143c; 
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    100% { 
+        color: #ff1493; 
+        text-shadow: 0 0 10px rgba(220, 20, 60, 0.6);
+    }
 }
 
 /* Character Sheet Specific Styles */
