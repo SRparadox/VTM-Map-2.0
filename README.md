@@ -61,13 +61,20 @@ Remove domain control.
 Icons on the map will be grey. As they will only show up in color when they are controlled by a faction or the character. The character's faction color depends on what faction the character aligns themselves with.
 Create a seperate file. which will be used to list all of the characters in the map/game with their rective stats, summaries and info, and pngs, however for now they will remain empty.
 
+# Stage 6
+Implementing 20 NPC across the different sects, with some having the recruitable tags in for joining the coiterie.
+
+Have the intro text be different depending on the faction chosen
+
+Implemented loyalty and recruitable systems for coiterie
+
+# Stage 7
+
+
 # not yet implemented
-Main Menu
-Player Creation
-Coterie Creation
-Random Character Generator
 Haven Creation and modification
 Sects and Influences
+
 Domain Borders
 Conflicts
 Stats affecting actions such as feedings

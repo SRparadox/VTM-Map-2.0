@@ -554,11 +554,13 @@ class GameState {
         const characterInfo = document.getElementById('characterInfo');
         const noCharacter = document.getElementById('noCharacter');
         const characterSheet = document.getElementById('characterSheet');
+        const portraitDisplay = document.getElementById('characterPortraitDisplay');
         
         if (this.character) {
             // Show character info, hide no character message
             characterInfo.style.display = 'flex';
             noCharacter.style.display = 'none';
+            portraitDisplay.style.display = 'flex';
             
             // Apply clan-specific font styling
             characterSheet.className = 'character-sheet';
@@ -570,6 +572,21 @@ class GameState {
             document.getElementById('characterName').textContent = this.character.name || 'Unnamed';
             document.getElementById('characterClan').textContent = `Clan: ${this.character.clan}`;
             document.getElementById('characterFaction').textContent = `Faction: ${this.character.faction || 'Independent'}`;
+            
+            // Update sidebar portrait
+            const sidebarPortrait = document.getElementById('sidebarCharacterPortrait');
+            const sidebarName = document.getElementById('sidebarCharacterName');
+            const sidebarClan = document.getElementById('sidebarCharacterClan');
+            
+            if (this.character.imageSrc) {
+                sidebarPortrait.src = this.character.imageSrc;
+            } else {
+                // Use clan symbol as fallback
+                sidebarPortrait.src = `./assets/clans/${this.character.clan.toLowerCase()}.png`;
+            }
+            sidebarPortrait.alt = `${this.character.name} Portrait`;
+            sidebarName.textContent = this.character.name || 'Unnamed';
+            sidebarClan.textContent = `${this.character.clan}`;
             
             // Update clan symbol
             const clanSymbol = document.getElementById('characterClanSymbol');
@@ -584,6 +601,7 @@ class GameState {
             // Show no character message, hide character info
             characterInfo.style.display = 'none';
             noCharacter.style.display = 'block';
+            portraitDisplay.style.display = 'none';
             
             // Reset character sheet styling
             characterSheet.className = 'character-sheet';
@@ -1426,6 +1444,8 @@ class IntroScreen {
     }
     
     startGameWithCharacter(character) {
+        console.log('startGameWithCharacter called with:', character);
+        
         const characterCreationScreen = document.getElementById('characterCreationScreen');
         const gameScreen = document.getElementById('gameScreen');
         
@@ -1433,6 +1453,7 @@ class IntroScreen {
         
         setTimeout(() => {
             gameScreen.classList.remove('hidden');
+            console.log('About to call initializeGameWithCharacter');
             this.initializeGameWithCharacter(character);
             
             // Fix map rendering after screen transition
@@ -1530,12 +1551,167 @@ class IntroScreen {
             refreshMapMarkers();
         }
         
-        // Show welcome message with character name
+        // Show faction-specific intro message instead of generic welcome
         setTimeout(() => {
-            showTelegram('Welcome, ' + character.name, `Welcome to San Francisco by Night, ${character.name} of Clan ${character.clan}. The Prince has granted you a small territory to prove your worth. Build your influence, expand your domain, and survive the political machinations of the Camarilla. Remember: the First Tradition above all - Maintain the Masquerade.`, [
-                { text: 'Begin my unlife', action: 'close', class: 'primary' }
-            ]);
+            console.log('Starting faction intro process for character:', character.name, 'faction:', character.faction);
+            
+            // Initialize game with faction-specific setup
+            if (typeof initializeGameWithFaction !== 'undefined') {
+                initializeGameWithFaction(character);
+                console.log('initializeGameWithFaction called');
+            }
+            
+            // Check if FactionIntros is available
+            console.log('FactionIntros available:', typeof FactionIntros !== 'undefined');
+            console.log('Character faction:', character.faction);
+            if (typeof FactionIntros !== 'undefined') {
+                console.log('Available factions in FactionIntros:', Object.keys(FactionIntros));
+            }
+            
+            // Use faction-specific intro if available, otherwise fall back to generic message
+            if (typeof FactionIntros !== 'undefined' && FactionIntros[character.faction]) {
+                console.log('Displaying faction intro for:', character.faction);
+                this.displayFactionIntroMessage(character.faction, character.name);
+            } else {
+                // Fallback for if faction-intros.js is not loaded
+                console.log('Using generic welcome fallback');
+                this.showGenericWelcome(character);
+            }
         }, 500);
+    }
+    
+    // Display faction-specific intro message
+    displayFactionIntroMessage(faction, characterName) {
+        console.log('displayFactionIntroMessage called with faction:', faction, 'character:', characterName);
+        
+        const intro = FactionIntros[faction];
+        if (!intro) {
+            console.error(`No intro found for faction: ${faction}`);
+            return;
+        }
+        
+        console.log('Found intro for faction:', faction);
+
+        // Create intro overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'faction-intro-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        `;
+
+        // Create intro content
+        const introElement = document.createElement('div');
+        introElement.className = `faction-intro faction-intro-${faction}`;
+        introElement.style.cssText = `
+            font-family: ${intro.font};
+            background-color: ${intro.backgroundColor};
+            color: ${intro.textColor};
+            border: 3px solid ${intro.borderColor};
+            padding: 30px;
+            margin: 20px;
+            max-width: 900px;
+            max-height: 80vh;
+            white-space: pre-line;
+            line-height: 1.4;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            position: relative;
+            overflow-y: auto;
+            border-radius: 5px;
+        `;
+
+        // Add faction-specific effects
+        switch(faction) {
+            case 'camarilla':
+                introElement.style.cssText += `
+                    border-style: double;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                    font-size: 12px;
+                `;
+                break;
+            case 'sabbat':
+                introElement.style.cssText += `
+                    animation: flicker 3s infinite;
+                    font-size: 14px;
+                `;
+                break;
+            case 'anarchs':
+                introElement.style.cssText += `
+                    text-shadow: 0 0 5px #00ff41;
+                    font-size: 12px;
+                `;
+                break;
+            case 'independent':
+                introElement.style.cssText += `
+                    font-style: italic;
+                    font-size: 14px;
+                `;
+                break;
+        }
+
+        // Personalize the content with character name where appropriate
+        let personalizedContent = intro.content;
+        if (faction === 'camarilla') {
+            personalizedContent = personalizedContent.replace('[CLASSIFIED KINDRED]', characterName.toUpperCase());
+        }
+
+        introElement.innerHTML = personalizedContent;
+
+        // Add continue button
+        const continueBtn = document.createElement('button');
+        continueBtn.textContent = 'Continue';
+        continueBtn.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            padding: 10px 20px;
+            background: ${intro.borderColor};
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        `;
+        continueBtn.onclick = () => overlay.remove();
+
+        introElement.appendChild(continueBtn);
+        overlay.appendChild(introElement);
+        document.body.appendChild(overlay);
+
+        // Auto-remove after 15 seconds
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.remove();
+            }
+        }, 15000);
+
+        // Initialize player faction in character database
+        if (typeof characterDB !== 'undefined') {
+            characterDB.initializePlayerFaction(faction);
+        }
+    }
+    
+    // Fallback generic welcome message
+    showGenericWelcome(character) {
+        const factionInfo = character.getFactionInfo(character.faction);
+        showTelegram('Welcome, ' + character.name, 
+            `Welcome to San Francisco by Night, ${character.name} of Clan ${character.clan}. ` +
+            `As a member of the ${factionInfo.name}, you must navigate the complex political landscape of the city. ` +
+            `Build your influence, expand your domain, and survive the machinations of rival factions.`, [
+                { text: 'Begin my unlife', action: 'close', class: 'primary' }
+            ]
+        );
     }
     
     // Method to return to intro screen (for future use)
@@ -1644,8 +1820,16 @@ class CharacterCreation {
             const createCharacterBtn = document.getElementById('createCharacterBtn');
             if (createCharacterBtn) {
                 createCharacterBtn.addEventListener('click', () => {
+                    console.log('Create character button clicked');
+                    console.log('Character object:', this.character);
+                    console.log('Character faction:', this.character.faction);
+                    console.log('Character isValid:', this.character.isValid());
+                    
                     if (this.character.isValid()) {
+                        console.log('Character is valid, starting game...');
                         introScreenManager.startGameWithCharacter(this.character);
+                    } else {
+                        console.log('Character is not valid, cannot start game');
                     }
                 });
             }

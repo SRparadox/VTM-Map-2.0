@@ -236,6 +236,13 @@
     
     <div class="game-container">
         <div class="sidebar">
+            <div class="character-portrait-display" id="characterPortraitDisplay" style="display: none;">
+                <img id="sidebarCharacterPortrait" src="" alt="Character Portrait" class="sidebar-portrait">
+                <div class="character-summary">
+                    <h4 id="sidebarCharacterName">Character Name</h4>
+                    <p id="sidebarCharacterClan">Clan</p>
+                </div>
+            </div>
             <div class="player-stats">
                 <h3>Character Status</h3>
                 <div class="stat-item">
@@ -358,6 +365,8 @@
     
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="characters.js"></script>
+    <script src="faction-intros.js"></script>
+    <script src="game-init.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

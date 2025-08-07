@@ -1023,6 +1023,40 @@ body {
     padding-bottom: 8px;
 }
 
+.character-portrait-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.sidebar-portrait {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #c9a96e;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.character-summary h4 {
+    margin: 0 0 5px 0;
+    color: #fff;
+    font-size: 1.1em;
+    font-family: 'Elegant-Caps', 'Gothic-Bold', 'Cinzel', serif;
+}
+
+.character-summary p {
+    margin: 0;
+    color: #c9a96e;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
 .location-legend {
     margin-bottom: 30px;
 }
@@ -1781,5 +1815,70 @@ body {
     .game-status {
         flex-direction: column;
         gap: 10px;
+    }
+}
+
+/* ========== FACTION INTRO ANIMATIONS ========== */
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+    75% { opacity: 0.9; }
+}
+
+@keyframes scan-lines {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 20px; }
+}
+
+.faction-intro-anarchs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 65, 0.03) 2px,
+        rgba(0, 255, 65, 0.03) 4px
+    );
+    pointer-events: none;
+}
+
+.faction-intro-sabbat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(255, 100, 0, 0.1) 1px, transparent 1px);
+    pointer-events: none;
+}
+
+/* Faction intro overlay styles */
+.faction-intro-overlay {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.faction-intro {
+    animation: slideIn 0.7s ease-out;
+}
+
+@keyframes slideIn {
+    from { 
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0);
+        opacity: 1;
     }
 }
