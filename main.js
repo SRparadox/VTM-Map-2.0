@@ -797,10 +797,18 @@ const locationIcons = {
     blood: '🩸'
 };
 
+// Define faction colors
+const factionColors = {
+    'camarilla': '#c9a96e',
+    'anarchs': '#8b0000',
+    'sabbat': '#2c1810',
+    'independent': '#4a4a4a'
+};
+
 // Function to create custom markers
 function createLocationMarker(location) {
     // Check if this location is controlled by the player's character or faction
-    const isControlled = gameState.character && 
+    const isControlled = gameState && gameState.character && 
         gameState.character.controlledLocations && 
         gameState.character.controlledLocations.includes(location.name);
     
@@ -1164,10 +1172,12 @@ document.addEventListener('click', (e) => {
 });
 
 // Add all important locations to the map
-// Initialize important locations and markers on map
-importantLocations.forEach(location => {
-    createLocationMarker(location);
-});
+// Initialize important locations and markers on map - moved to initializeMap function
+function initializeMapMarkers() {
+    importantLocations.forEach(location => {
+        createLocationMarker(location);
+    });
+}
 
 // Function to refresh map markers with current character/faction colors
 function refreshMapMarkers() {
@@ -1437,6 +1447,9 @@ class IntroScreen {
                         }
                         gameState.loadGame();
                         
+                        // Initialize map markers now that gameState exists
+                        initializeMapMarkers();
+                        
                         // Fix map rendering after screen transition
                         setTimeout(() => {
                             if (typeof map !== 'undefined') {
@@ -1474,6 +1487,9 @@ class IntroScreen {
         gameState.currentPhase = 'Dusk';
         gameState.phaseIndex = 0;
         gameState.playerActions = 3;
+        
+        // Initialize map markers now that gameState exists
+        initializeMapMarkers();
         
         // Update all UI elements
         gameState.updateUI();
